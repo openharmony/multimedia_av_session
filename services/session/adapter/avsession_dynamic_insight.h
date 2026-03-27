@@ -123,7 +123,7 @@ private:
     bool ExecuteIntentFromAVSession(uint64_t key, const sptr<IRemoteObject> &callerToken,
         AppExecFwk::InsightIntentExecuteParam &param);
 
-    const int32_t getBundleInfoWithHapModule = 0x00000002;
+    const int32_t getBundleInfoWithHapModule = 0x00000002 | 0x00020000; // exclude anco
 
     const int32_t startUserId = 100;
 
