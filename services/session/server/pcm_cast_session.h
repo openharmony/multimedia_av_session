@@ -53,8 +53,6 @@ public:
 
 private:
     int64_t castHandle_ = 0;
-    int32_t castMode_ = HiPlayCastMode::DEVICE_LEVEL;
-    int32_t supportCastMode_ = HiPlayCastMode::DEVICE_LEVEL;
     int32_t castState_ = CastState::DISCONNECTED;
     std::recursive_mutex castLock_;
     AVSessionDescriptor descriptor_;
@@ -67,6 +65,7 @@ private:
     OutputDeviceInfo newOutputDeviceInfo_;
     SessionToken newSessionToken_;
     std::pair<std::string, std::string> newServiceNameStatePair_;
+    DeviceInfo tempDeviceInfo_;
 
     const std::string COMMAND_TYPE = "command_type";
     const std::string COMMAND_BODY = "command_body";
