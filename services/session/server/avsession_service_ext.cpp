@@ -533,7 +533,7 @@ int32_t AVSessionService::StartCast(const SessionToken& sessionToken, const Outp
             CHECK_AND_RETURN_RET_LOG(session != nullptr, ERR_SESSION_NOT_EXIST, "session %{public}s not exist",
                 AVSessionUtils::GetAnonySessionId(pcmSessionToken.sessionId).c_str());
             uid = session->GetUid();
-            SLOGI("GetUid success");
+            SLOGI("GetUid success, uid = %{public}d", uid);
         }
         pcmSessionToken.uid = uid;
         return pcmCastSession_->StartCast(outputDeviceInfo, castServiceNameStatePair_, pcmSessionToken);
