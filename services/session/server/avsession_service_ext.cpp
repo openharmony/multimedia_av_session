@@ -526,16 +526,14 @@ int32_t AVSessionService::StartCast(const SessionToken& sessionToken, const Outp
         
         SessionToken pcmSessionToken;
         pcmSessionToken.sessionId = sessionToken.sessionId;
-
-        pid_t uid = 0;
+        pcmSessionToken.uid = 0;
         if (pcmSessionToken.sessionId != "pcmCastSession") {
             auto session = GetContainer().GetSessionById(pcmSessionToken.sessionId);
             CHECK_AND_RETURN_RET_LOG(session != nullptr, ERR_SESSION_NOT_EXIST, "session %{public}s not exist",
                 AVSessionUtils::GetAnonySessionId(pcmSessionToken.sessionId).c_str());
-            uid = session->GetUid();
-            SLOGI("GetUid success, uid = %{public}d", uid);
+            pcmSessionToken.uid = session->GetUid();
+            SLOGI("GetUid success, uid = %{public}d", pcmSessionToken.uid);
         }
-        pcmSessionToken.uid = uid;
         return pcmCastSession_->StartCast(outputDeviceInfo, castServiceNameStatePair_, pcmSessionToken);
     }
 #endif //CASTPLUS_CAST_ENGINE_ENABLE
