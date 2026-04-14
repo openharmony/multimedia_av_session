@@ -260,7 +260,8 @@ __attribute__((no_sanitize("cfi"))) bool BundleStatusAdapter::IsSupportPlayInten
         return false;
     }
     AppExecFwk::BundleInfo bundleInfo;
-    if (!bundleMgrProxy->GetBundleInfo(bundleName, getBundleInfoWithHapModule, bundleInfo, startUserId)) {
+    if (!bundleMgrProxy->GetBundleInfo(bundleName,
+        getBundleInfoWithHapModule | getBundleInfoExcludeExt, bundleInfo, startUserId)) {
         SLOGE("GetBundleInfo=%{public}s fail", bundleName.c_str());
         return false;
     }
