@@ -69,6 +69,7 @@ ohos_shared_library("ohavsession") {
     "image_framework:pixelmap",
     "input:libmmi-client",
     "ipc:ipc_single",
+    "napi:ace_napi",
     "samgr:samgr_proxy",
   ]
 
