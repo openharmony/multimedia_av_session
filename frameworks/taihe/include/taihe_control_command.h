@@ -39,6 +39,9 @@ public:
     static int32_t SetValue(OHOS::AVSession::AVControlCommand &in, AVControlCommand &out);
 
     static int32_t GetNoneParam(AVControlCommand in, OHOS::AVSession::AVControlCommand &out);
+    static int32_t GetPlayParam(AVControlCommand in, OHOS::AVSession::AVControlCommand &out);
+    static int32_t GetPlayNextParam(AVControlCommand in, OHOS::AVSession::AVControlCommand &out);
+    static int32_t GetPlayPreviousParam(AVControlCommand in, OHOS::AVSession::AVControlCommand &out);
     static int32_t GetSpeed(AVControlCommand in, OHOS::AVSession::AVControlCommand &out);
     static int32_t GetForwardTime(AVControlCommand in, OHOS::AVSession::AVControlCommand &out);
     static int32_t GetRewindTime(AVControlCommand in, OHOS::AVSession::AVControlCommand &out);
