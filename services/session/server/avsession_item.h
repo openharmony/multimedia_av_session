@@ -343,6 +343,8 @@ public:
 
     sptr<IRemoteObject> GetAVCastControllerInner() override;
 
+    void SetCastControllerCallbackForCastCap(std::shared_ptr<IAVCastControllerProxy> castControllerProxy);
+
     void ReleaseAVCastControllerInner();
 
     void UpdateCastDeviceMap(DeviceInfo deviceInfo);
