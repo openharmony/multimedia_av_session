@@ -32,7 +32,7 @@ public:
     BundleStatusAdapter();
 
     ~BundleStatusAdapter();
-    
+
     void Init();
 
     bool GetBundleIcon(const std::string bundleName, const std::string abilityName, std::string& icon);
@@ -62,7 +62,9 @@ private:
 
     const int32_t backgroundModeDemand = 2;
 
-    const int32_t getBundleInfoWithHapModule = 0x00000002;
+    const uint32_t getBundleInfoWithHapModule = 0x00000002;
+
+    const uint32_t getBundleInfoExcludeExt = 0x00020000; // exclude anco
 
     const int32_t startUserId = 100;
 
