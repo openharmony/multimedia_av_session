@@ -1234,7 +1234,8 @@ void AVSessionItem::dealValidCallback(int32_t cmd, std::vector<int32_t>& support
 sptr<IRemoteObject> AVSessionItem::GetAVCastControllerInner()
 {
     InitAVCastControllerProxy();
-    CHECK_AND_RETURN_RET_LOG(castControllerProxy_ != nullptr, nullptr,
+    auto castControllerProxy = castControllerProxy_;
+    CHECK_AND_RETURN_RET_LOG(castControllerProxy != nullptr, nullptr,
         "castControllerProxy_ is null when get avCastController");
     sptr<AVCastControllerItem> castController = new (std::nothrow) AVCastControllerItem();
     CHECK_AND_RETURN_RET_LOG(castController != nullptr, nullptr, "malloc avCastController failed");
@@ -1252,7 +1253,7 @@ sptr<IRemoteObject> AVSessionItem::GetAVCastControllerInner()
                 GetDescriptor().outputDeviceInfo_.deviceInfos_[0]);
         }
     };
-    sharedPtr->Init(castControllerProxy_, validCallback, preparecallback);
+    sharedPtr->Init(castControllerProxy, validCallback, preparecallback);
     {
         std::lock_guard lockGuard(castControllersLock_);
         castControllers_.emplace_back(sharedPtr);
@@ -1261,24 +1262,32 @@ sptr<IRemoteObject> AVSessionItem::GetAVCastControllerInner()
     sharedPtr->SetSessionTag(descriptor_.sessionTag_);
     sharedPtr->SetSessionId(descriptor_.sessionId_);
     sharedPtr->SetUserId(userId_);
-    if (descriptor_.sessionTag_ != "RemoteCast" && castControllerProxy_ != nullptr) {
-        std::lock_guard callbackForCastCapLockGuard(callbackForCastCapLock_);
-        castControllerProxy_->SetSessionCallbackForCastCap([this](bool isPlaying, bool isMediaChange) {
-            std::thread([this, isPlaying, isMediaChange]() {
-                CHECK_AND_RETURN_LOG(serviceCallbackForCastNtf_ != nullptr, "serviceCallbackForCastNtf_ is empty");
-                SLOGI("MediaCapsule CastCapsule for service isPlaying %{public}d, isMediaChange %{public}d",
-                    isPlaying, isMediaChange);
-                serviceCallbackForCastNtf_(descriptor_.sessionId_, isPlaying, isMediaChange);
-            }).detach();
-        });
-    }
+    SetCastControllerCallbackForCastCap(castControllerProxy);
     InitializeCastCommands();
     if (SearchSpidInCapability(castHandleDeviceId_)) {
-        if (castControllerProxy_ != nullptr) {
-            castControllerProxy_->SetSpid(GetSpid());
-        }
+        castControllerProxy->SetSpid(GetSpid());
     }
     return remoteObject;
+}
+
+void AVSessionItem::SetCastControllerCallbackForCastCap(std::shared_ptr<IAVCastControllerProxy> castControllerProxy)
+{
+    if (descriptor_.sessionTag_ == "RemoteCast" || castControllerProxy == nullptr) {
+        return;
+    }
+    std::lock_guard callbackForCastCapLockGuard(callbackForCastCapLock_);
+    auto weakThis = wptr<AVSessionItem>(this);
+    castControllerProxy->SetSessionCallbackForCastCap([weakThis](bool isPlaying, bool isMediaChange) {
+        std::thread([weakThis, isPlaying, isMediaChange]() {
+            auto sharedThis = weakThis.promote();
+            CHECK_AND_RETURN_LOG(sharedThis != nullptr, "AVSessionItem is already destroyed");
+            CHECK_AND_RETURN_LOG(sharedThis->serviceCallbackForCastNtf_ != nullptr,
+                "serviceCallbackForCastNtf_ is empty");
+            SLOGI("MediaCapsule CastCapsule for service isPlaying %{public}d, isMediaChange %{public}d",
+                isPlaying, isMediaChange);
+            sharedThis->serviceCallbackForCastNtf_(sharedThis->descriptor_.sessionId_, isPlaying, isMediaChange);
+        }).detach();
+    });
 }
 
 void AVSessionItem::ReleaseAVCastControllerInner()
