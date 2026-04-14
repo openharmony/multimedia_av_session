@@ -39,6 +39,7 @@ common_external_deps = [
   "image_framework:pixelmap",
   "input:libmmi-client",
   "ipc:ipc_single",
+  "napi:ace_napi",
   "samgr:samgr_proxy",
 ]
 
