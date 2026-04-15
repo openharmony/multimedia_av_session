@@ -1173,7 +1173,13 @@ export class AVCastPicker extends ViewPU {
                                                     }
                                                 }
                                             });
-                                            Flex.padding({ top: 2.5, right: 4, bottom: 2.5, left: 4 });
+                                            Flex.accessibilityLevel('yes');
+                                            Flex.accessibilityText(`${this.textParams?.accessCastMode}` + 
+                                                `${x8?.castMode === HiPlayCastMode.DEVICE_LEVEL
+                                                    ? this.textParams?.allMediaAudio
+                                                    : this.textParams?.accessPlayingNow}` +
+                                                `${this.textParams?.accessNewPoint}`);
+                                            Flex.padding({ top: 2.5, bottom: 2.5 });
                                             Flex.margin({ top: 4 });
                                             Flex.width('auto');
                                         }, Flex);
@@ -1710,6 +1716,9 @@ export class AVCastPicker extends ViewPU {
                     this.isMenuShow = true;
                 }
             });
+            Flex.accessibilityLevel('yes');
+            Flex.accessibilitySelected(this.isDeviceLevel ? true : false);
+            Flex.accessibilityRole(AccessibilityRoleType.MENU_ITEM);
         }, Flex);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Flex.create({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center });
@@ -1789,6 +1798,9 @@ export class AVCastPicker extends ViewPU {
                     this.isMenuShow = true;
                 }
             });
+            Flex.accessibilityLevel('yes');
+            Flex.accessibilitySelected(!this.isDeviceLevel ? true : false);
+            Flex.accessibilityRole(AccessibilityRoleType.MENU_ITEM);
         }, Flex);
         this.observeComponentCreation2((elmtId, isInitialRender) => {
             Flex.create({ justifyContent: FlexAlign.SpaceBetween, alignItems: ItemAlign.Center });
@@ -1889,7 +1901,7 @@ export class AVCastPicker extends ViewPU {
             Button.stateEffect(false);
             Button.backgroundColor('#00000000');
             Button.accessibilityLevel('yes');
-            Button.accessibilityText(this.accessibilityAudioControlStr);
+            Button.accessibilityText(`${this.accessibilityAudioControlStr}${this.textParams?.accessNewPoint}`);
             Button.onClick(() => {
                 if (this.extensionProxy == null) {
                     return;
