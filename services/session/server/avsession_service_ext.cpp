@@ -565,17 +565,18 @@ int32_t AVSessionService::StartCast(const SessionToken& sessionToken, const Outp
 int32_t AVSessionService::StopCast(const SessionToken& sessionToken)
 {
     sptr<AVSessionItem> session = GetUsersManager().GetContainerFromAll().GetSessionById(sessionToken.sessionId);
-    CHECK_AND_RETURN_RET_LOG(session != nullptr, AVSESSION_SUCCESS, "StopCast: session is not exist");
-    if (session->GetDescriptor().sessionType_ != AVSession::SESSION_TYPE_VOICE_CALL &&
-        session->GetDescriptor().sessionType_ != AVSession::SESSION_TYPE_VIDEO_CALL) {
+    if ((session != nullptr &&session->GetDescriptor().sessionType_ != AVSession::SESSION_TYPE_VOICE_CALL &&
+        session->GetDescriptor().sessionType_ != AVSession::SESSION_TYPE_VIDEO_CALL) ||
+        (session == nullptr)) {
 #ifdef CASTPLUS_CAST_ENGINE_ENABLE
-        if (pcmCastSession_ != nullptr) {
-            pcmCastSession_->StopCast();
-            pcmCastSession_ = nullptr;
-        }
+            if (pcmCastSession_ != nullptr) {
+                pcmCastSession_->StopCast();
+                pcmCastSession_ = nullptr;
+            }
 #endif //CASTPLUS_CAST_ENGINE_ENABLE
     }
 
+    CHECK_AND_RETURN_RET_LOG(session != nullptr, AVSESSION_SUCCESS, "StopCast: session is not exist");
     CHECK_AND_RETURN_RET_LOG(session->StopCast() == AVSESSION_SUCCESS, AVSESSION_ERROR, "StopCast failed");
     if (session->GetDescriptor().sessionTag_ == "RemoteCast") {
         SLOGI("Stop cast at sink, start destroy sink avsession task");
