@@ -114,7 +114,6 @@ private:
     void WriteCastPairToFile(const std::string& deviceId, int32_t castMode);
     int32_t SendStateChangeRequest(const SessionToken& sessionToken);
     void CastStateCommandParams(const AAFwk::WantParams& commandArgs);
-    static AVSessionUsersManager& GetUsersManager();
     void DealCollaborationPublishState(int32_t castState, DeviceInfo deviceInfo);
 };
 } // namespace OHOS::AVSession
