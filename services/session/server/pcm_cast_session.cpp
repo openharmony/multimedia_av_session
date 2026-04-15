@@ -144,6 +144,7 @@ int32_t PcmCastSession::StartCast(const OutputDeviceInfo& outputDeviceInfo,
 {
     SLOGI("PcmCastSession StartCast");
     CHECK_AND_RETURN_RET_LOG(outputDeviceInfo.deviceInfos_.size() > 0, ERR_INVALID_PARAM, "empty device info");
+    descriptor_.sessionId_ = sessionToken.sessionId;
     if (castHandle_ > 0) {
         if (castHandleDeviceId_ == outputDeviceInfo.deviceInfos_[0].deviceId_) {
             SLOGI("repeat startcast %{public}lld", castHandle_);
