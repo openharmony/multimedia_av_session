@@ -565,7 +565,7 @@ int32_t AVSessionService::StartCast(const SessionToken& sessionToken, const Outp
 int32_t AVSessionService::StopCast(const SessionToken& sessionToken)
 {
     sptr<AVSessionItem> session = GetUsersManager().GetContainerFromAll().GetSessionById(sessionToken.sessionId);
-    if ((session != nullptr &&session->GetDescriptor().sessionType_ != AVSession::SESSION_TYPE_VOICE_CALL &&
+    if ((session != nullptr && session->GetDescriptor().sessionType_ != AVSession::SESSION_TYPE_VOICE_CALL &&
         session->GetDescriptor().sessionType_ != AVSession::SESSION_TYPE_VIDEO_CALL) || (session == nullptr)) {
 #ifdef CASTPLUS_CAST_ENGINE_ENABLE
             if (pcmCastSession_ != nullptr) {
