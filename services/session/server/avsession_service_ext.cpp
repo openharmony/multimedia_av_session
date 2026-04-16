@@ -568,10 +568,10 @@ int32_t AVSessionService::StopCast(const SessionToken& sessionToken)
     if ((session != nullptr && session->GetDescriptor().sessionType_ != AVSession::SESSION_TYPE_VOICE_CALL &&
         session->GetDescriptor().sessionType_ != AVSession::SESSION_TYPE_VIDEO_CALL) || (session == nullptr)) {
 #ifdef CASTPLUS_CAST_ENGINE_ENABLE
-            if (pcmCastSession_ != nullptr) {
-                pcmCastSession_->StopCast();
-                pcmCastSession_ = nullptr;
-            }
+        if (pcmCastSession_ != nullptr) {
+            pcmCastSession_->StopCast();
+            pcmCastSession_ = nullptr;
+        }
 #endif //CASTPLUS_CAST_ENGINE_ENABLE
     }
 
