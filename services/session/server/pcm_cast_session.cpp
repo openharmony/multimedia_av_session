@@ -272,10 +272,10 @@ void PcmCastSession::ExecuteCommonCommand(const std::string& commonCommand, cons
         case CAST_MODE_CHANGE_COMMAND:
             CastStateCommandParams(commandArgs);
             break;
-        case BYPASS_NUM_COMMAND:
+        case BYPASS_COMMAND_NUM:
             BypassCommandParams(commandArgs);
             break;
-        case QUERY_NUM_COMMAND:
+        case QUERY_COMMAND_NUM:
             QueryCommandParams(commandArgs);
             break;
         default:
@@ -334,20 +334,16 @@ AVSessionDescriptor PcmCastSession::GetDescriptor()
 
 void PcmCastSession::BypassCommandParams(const AAFwk::WantParams& commandArgs)
 {
-    auto commandType = AAFwk::IString::Query(commandArgs.GetParam(COMMAND_TYPE));
-    CHECK_AND_RETURN_LOG(commandType != nullptr, "commandType not have value");
-
-    std::string type = AAFwk::String::Unbox(commandType);
-
-    const auto& it = BYPASS_COMMAND_MAPS.find(type);
+    std::string commandType = commandArgs.GetStringParam(COMMAND_TYPE);
+    const auto& it = BYPASS_COMMAND_MAPS.find(commandType);
     CHECK_AND_RETURN_LOG(it != BYPASS_COMMAND_MAPS.end(), "bypassCommand is not support");
 
     AAFwk::WantParams commandBody = commandArgs.GetWantParams(COMMAND_BODY);
     std::string params = commandBody.ToString();
 
     switch (it->second) {
-        case BYPASS_NUM_TO_CAST:
-            AVRouter::GetInstance().SendCommandArgsToCast(castHandle_, BYPASS_NUM_COMMAND, params);
+        case BYPASS_TO_CAST_NUM:
+            AVRouter::GetInstance().SendCommandArgsToCast(castHandle_, BYPASS_COMMAND_NUM, params);
             break;
         default:
             break;
@@ -356,20 +352,16 @@ void PcmCastSession::BypassCommandParams(const AAFwk::WantParams& commandArgs)
 
 void PcmCastSession::QueryCommandParams(const AAFwk::WantParams& commandArgs)
 {
-    auto commandType = AAFwk::IString::Query(commandArgs.GetParam(COMMAND_TYPE));
-    CHECK_AND_RETURN_LOG(commandType != nullptr, "commandType not have value");
-
-    std::string type = AAFwk::String::Unbox(commandType);
-
-    const auto& it = QUERY_COMMAND_MAPS.find(type);
+    std::string commandType = commandArgs.GetStringParam(COMMAND_TYPE);
+    const auto& it = QUERY_COMMAND_MAPS.find(commandType);
     CHECK_AND_RETURN_LOG(it != QUERY_COMMAND_MAPS.end(), "queryCommand is not support");
 
     AAFwk::WantParams commandBody = commandArgs.GetWantParams(COMMAND_BODY);
     std::string params = commandBody.ToString();
 
     switch (it->second) {
-        case QUERY_NUM_TO_CAST:
-            AVRouter::GetInstance().SendCommandArgsToCast(castHandle_, QUERY_NUM_COMMAND, params);
+        case QUERY_TO_CAST_NUM:
+            AVRouter::GetInstance().SendCommandArgsToCast(castHandle_, QUERY_COMMAND_NUM, params);
             break;
         default:
             break;

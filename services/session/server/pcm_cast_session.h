@@ -80,8 +80,8 @@ private:
 
     enum {
         CAST_MODE_CHANGE_COMMAND = 0,
-        BYPASS_NUM_COMMAND = 1,
-        QUERY_NUM_COMMAND = 2,
+        BYPASS_COMMAND_NUM = 1,
+        QUERY_COMMAND_NUM = 2,
     };
 
     enum CastState {
@@ -91,24 +91,24 @@ private:
 
     const std::map<const std::string, int32_t> COMMON_COMMAND_MAPS = {
         {CHANGE_CAST_MODE, CAST_MODE_CHANGE_COMMAND},
-        {BYPASS_COMMAND, BYPASS_NUM_COMMAND},
-        {QUERY_COMMAND, QUERY_NUM_COMMAND},
+        {BYPASS_COMMAND, BYPASS_COMMAND_NUM},
+        {QUERY_COMMAND, QUERY_COMMAND_NUM},
     };
 
     enum {
-        BYPASS_NUM_TO_CAST = 0,
+        BYPASS_TO_CAST_NUM = 0,
     };
 
     const std::map<const std::string, int32_t> BYPASS_COMMAND_MAPS = {
-        {BYPASS_TO_CAST, BYPASS_NUM_TO_CAST},
+        {BYPASS_TO_CAST, BYPASS_TO_CAST_NUM},
     };
 
     enum {
-        QUERY_NUM_TO_CAST = 0,
+        QUERY_TO_CAST_NUM = 0,
     };
 
     const std::map<const std::string, int32_t> QUERY_COMMAND_MAPS = {
-        {QUERY_TO_CAST, QUERY_NUM_TO_CAST},
+        {QUERY_TO_CAST, QUERY_TO_CAST_NUM},
     };
 
     void WriteCastPairToFile(const std::string& deviceId, int32_t castMode);
