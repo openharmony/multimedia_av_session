@@ -350,13 +350,14 @@ public:
     int32_t UploadDesktopLyricOperationInfo(const std::string &sessionId,
         const std::string &handler, uint32_t sceneCode) override;
 
+    static AVSessionUsersManager& GetUsersManager();
+
 private:
     void NotifyProcessStatus(bool isStart);
 
     void SetCritical(bool isCritical);
 
     static SessionContainer& GetContainer();
-    static AVSessionUsersManager& GetUsersManager();
 
     std::string AllocSessionId();
 
