@@ -141,6 +141,12 @@ NapiAVSession::~NapiAVSession()
 #endif
     std::lock_guard lockGuard(registerEventLock_);
     registerEventList_.clear();
+    std::lock_guard<std::mutex> lock(currentNapiSessionMutex_);
+    SLOGE("appspawn check release");
+    if (currentNapiSession != nullptr && currentNapiSession->sessionId_ == sessionId_) {
+        SLOGE("appspawn check release in");
+        currentNapiSession = nullptr;
+    }
 }
 
 napi_value NapiAVSession::Init(napi_env env, napi_value exports)
