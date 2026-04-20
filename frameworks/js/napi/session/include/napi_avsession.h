@@ -185,6 +185,8 @@ private:
     static std::shared_ptr<NapiAVSession> napiAVSession_;
     static std::recursive_mutex destroyLock_;
     static bool isNapiSessionDestroy_;
+    static std::string currentSessionId_;
+    static std::shared_ptr<NapiAVSessionCallback> currentCallback_;
 
     static std::map<std::string, OnEventHandlerType> onEventHandlers_;
     static std::map<std::string, OffEventHandlerType> offEventHandlers_;
