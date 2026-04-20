@@ -15,6 +15,7 @@
 
 #include "pcm_cast_session.h"
 
+#include <inttypes.h>
 #include "avsession_log.h"
 #include "avsession_utils.h"
 #include "av_router.h"
@@ -148,7 +149,7 @@ int32_t PcmCastSession::StartCast(const OutputDeviceInfo& outputDeviceInfo,
     descriptor_.sessionId_ = sessionToken.sessionId;
     if (castHandle_ > 0) {
         if (castHandleDeviceId_ == outputDeviceInfo.deviceInfos_[0].deviceId_) {
-            SLOGI("repeat startcast %{public}lld", castHandle_);
+            SLOGI("repeat startcast %{public}" PRId64, castHandle_);
             SendStateChangeRequest(sessionToken);
             
             descriptor_.uid_ = sessionToken.uid;
@@ -184,7 +185,7 @@ int32_t PcmCastSession::SubStartCast(const OutputDeviceInfo& outputDeviceInfo,
 {
     castHandle_ = AVRouter::GetInstance().StartCast(outputDeviceInfo, serviceNameStatePair, "pcmCastSession");
     CHECK_AND_RETURN_RET_LOG(castHandle_ != AVSESSION_ERROR, AVSESSION_ERROR, "StartCast failed");
-    SLOGI("PcmCastSession StartCast-castHandle_ %{public}lld", castHandle_);
+    SLOGI("PcmCastSession StartCast-castHandle_ %{public}" PRId64, castHandle_);
     AVRouter::GetInstance().RegisterCallback(castHandle_, shared_from_this(),
         "pcmCastSession", outputDeviceInfo.deviceInfos_[0]);
 
