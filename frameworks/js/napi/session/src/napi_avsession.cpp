@@ -1805,7 +1805,7 @@ void NapiAVSession::TryReuseCallback(NapiAVSession* napiSession, const AAFwk::Wa
     }
     if (currentSessionId_ == napiAVSession_->sessionId_) {
         napiSession->callback_ = currentCallback_;
-        SLOGI("Reuse currentCallback, sessionId=%{public}s", currentSessionId_.substr(0, UNMASK_CHAR_NUM).c_str());
+        SLOGI("Reuse currentCallback, sessionId=%{public}s***", currentSessionId_.substr(0, UNMASK_CHAR_NUM).c_str());
     }
 }
 
