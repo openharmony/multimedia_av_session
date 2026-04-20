@@ -141,11 +141,6 @@ NapiAVSession::~NapiAVSession()
 #endif
     std::lock_guard lockGuard(registerEventLock_);
     registerEventList_.clear();
-    std::lock_guard<std::mutex> lock(currentNapiSessionMutex_);
-    if (currentNapiSession != nullptr && currentNapiSession->sessionId_ == sessionId_) {
-        SLOGI("Clear currentNapiSession, sessionId=%{public}s", sessionId_.c_str());
-        currentNapiSession = nullptr;
-    }
 }
 
 napi_value NapiAVSession::Init(napi_env env, napi_value exports)
