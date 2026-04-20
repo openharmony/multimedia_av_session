@@ -103,6 +103,9 @@ private:
     static void AVQueueImgDownloadSyncExecutor(NapiAVSession* napiSession,
         OHOS::AVSession::AVMetaData metaData);
 
+    static void BuildErrorContext(std::shared_ptr<ContextBase> context, int32_t ret);
+    static void BuildDestroyErrorContext(std::shared_ptr<ContextBase> context, int32_t ret);
+    static void TryReuseCallback(NapiAVSession* napiSession, const AAFwk::WantParams& extras);
     static napi_status OnPlay(napi_env env, NapiAVSession* napiSession, napi_value callback);
     static napi_status OnPause(napi_env env, NapiAVSession* napiSession, napi_value callback);
     static napi_status OnStop(napi_env env, NapiAVSession* napiSession, napi_value callback);
