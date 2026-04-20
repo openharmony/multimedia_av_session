@@ -1803,7 +1803,7 @@ void NapiAVSession::TryReuseCallback(NapiAVSession* napiSession, const AAFwk::Wa
     if (reuseCallback != "1" && reuseCallback != "true") {
         return;
     }
-    if (currentSessionId_ == napiAVSession_->sessionId_) {
+    if (currentSessionId_ == napiSession_->sessionId_) {
         napiSession->callback_ = currentCallback_;
         SLOGI("Reuse currentCallback, sessionId=%{public}s***", currentSessionId_.substr(0, UNMASK_CHAR_NUM).c_str());
     }
