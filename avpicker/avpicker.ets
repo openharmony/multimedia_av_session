@@ -120,6 +120,9 @@ interface TextParams {
   currentApp?: string,
   allMediaAudio?: string,
   playingNow?: string,
+  accessCastMode?: string,
+  accessPlayingNow?: string,
+  accessNewPoint?: string,
 }
 
 /**
@@ -993,7 +996,13 @@ export struct AVCastPicker {
                       }
                     }
                   })
-                  .padding({top: 2.5, right: 4, bottom: 2.5, left: 4})
+                  .accessibilityLevel('yes')
+                  .accessibilityText(`${this.textParams?.accessCastMode}` +
+                    `${item?.castMode === HiPlayCastMode.DEVICE_LEVEL
+                      ? this.textParams?.allMediaAudio
+                      : this.textParams?.accessPlayingNow}` +
+                    `${this.textParams?.accessNewPoint}`)
+                  .padding({top: 2.5, bottom: 2.5})
                   .margin({top: 4})
                   .width('auto')
                 }
@@ -1104,6 +1113,9 @@ export struct AVCastPicker {
       }
       .width(224)
       .height(48)
+      .accessibilityLevel('yes')
+      .accessibilitySelected(this.isDeviceLevel ? true : false)
+      .accessibilityRole(AccessibilityRoleType.MENU_ITEM)
       .onClick(() => {
         this.isDeviceLevel = true
         if (this.extensionProxy != null) {
@@ -1149,6 +1161,9 @@ export struct AVCastPicker {
       }
       .width(224)
       .height(48)
+      .accessibilityLevel('yes')
+      .accessibilitySelected(!this.isDeviceLevel ? true : false)
+      .accessibilityRole(AccessibilityRoleType.MENU_ITEM)
       .onClick(() => {
         this.isDeviceLevel = false
         if (this.extensionProxy != null) {
@@ -1410,7 +1425,7 @@ export struct AVCastPicker {
     .stateEffect(false)
     .size({ width: '100%', height: '100%' })
     .accessibilityLevel('yes')
-    .accessibilityText(this.accessibilityAudioControlStr)
+    .accessibilityText(`${this.accessibilityAudioControlStr}${this.textParams?.accessNewPoint}`)
     .onClick(() => {
         if (this.needToRestart) {
           this.needToRestart = false;
