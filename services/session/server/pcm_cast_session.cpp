@@ -15,7 +15,6 @@
 
 #include "pcm_cast_session.h"
 
-#include <inttypes.h>
 #include "avsession_log.h"
 #include "avsession_utils.h"
 #include "av_router.h"
