@@ -2118,7 +2118,9 @@ napi_value NapiAVSession::Destroy(napi_env env, napi_callback_info info)
         if (napiSession != nullptr && ret == AVSESSION_SUCCESS) {
             napiSession->session_ = nullptr;
             napiSession->callback_ = nullptr;
-            currentCallback_ = nullptr;
+            if (napiSession->sessionId_ == currentSessionId_) {
+                currentCallback_ = nullptr;
+            }
         } else {
             BuildDestroyErrorContext(context, ret);
         }
