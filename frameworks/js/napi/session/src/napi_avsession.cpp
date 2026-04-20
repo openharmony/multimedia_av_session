@@ -2119,24 +2119,28 @@ napi_value NapiAVSession::Destroy(napi_env env, napi_callback_info info)
             napiSession->session_ = nullptr;
             napiSession->callback_ = nullptr;
             currentCallback_ = nullptr;
-        } else if (ret == ERR_SESSION_NOT_EXIST) {
-            context->status = napi_generic_failure;
-            context->errMessage = "Destroy session failed : native session not exist";
-            context->errCode = NapiAVSessionManager::errcode_[ret];
-        } else if (ret == ERR_NO_PERMISSION) {
-            context->status = napi_generic_failure;
-            context->errMessage = "Destroy failed : native no permission";
-            context->errCode = NapiAVSessionManager::errcode_[ret];
         } else {
-            context->status = napi_generic_failure;
-            context->errMessage = "Destroy session failed : native server exception";
-            context->errCode = NapiAVSessionManager::errcode_[ret];
+            BuildDestroyErrorContext(context, ret);
         }
     };
     auto complete = [env](napi_value& output) {
         output = NapiUtils::GetUndefinedValue(env);
     };
     return NapiAsyncWork::Enqueue(env, context, "Destroy", executor, complete);
+}
+
+void NapiAVSession::BuildDestroyErrorContext(std::shared_ptr<ContextBase> context, int32_t ret)
+{
+    // Sets error context (status, message, error code) for Destroy operation based on return code
+    context->status = napi_generic_failure;
+    context->errCode = NapiAVSessionManager::errcode_[ret];
+    if (ret == ERR_SESSION_NOT_EXIST) {
+        context->errMessage = "Destroy session failed : native session not exist";
+    } else if (ret == ERR_NO_PERMISSION) {
+        context->errMessage = "Destroy failed : native no permission";
+    } else {
+        context->errMessage = "Destroy session failed : native server exception";
+    }
 }
 
 napi_value NapiAVSession::SetSessionEvent(napi_env env, napi_callback_info info)
