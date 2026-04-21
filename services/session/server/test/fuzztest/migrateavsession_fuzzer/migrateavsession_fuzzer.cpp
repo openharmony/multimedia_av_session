@@ -483,11 +483,17 @@ void ProcControlCommandFromNextTestExt()
     if (json == nullptr) {
         return;
     }
-    migrateServer_->playerIdToControllerMap_.insert({sessionId, avcontroller});
+    {
+        std::lock_guard<std::recursive_mutex> lock(migrateServer_->migrateControllerLock_);
+        migrateServer_->playerIdToControllerMap_.insert({sessionId, avcontroller});
+    }
     cJSON_AddNumberToObject(json, "CommandCode", AVControlCommand::SESSION_CMD_TOGGLE_FAVORITE);
     cJSON_AddStringToObject(json, "CommandArgs", "test_arg");
     migrateServer_->ProcControlCommandFromNext(json);
-    migrateServer_->playerIdToControllerMap_.erase(sessionId);
+    {
+        std::lock_guard<std::recursive_mutex> lock(migrateServer_->migrateControllerLock_);
+        migrateServer_->playerIdToControllerMap_.erase(sessionId);
+    }
     cJSON_Delete(json);
 }
 
