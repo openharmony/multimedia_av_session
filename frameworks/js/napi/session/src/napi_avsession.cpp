@@ -285,16 +285,14 @@ napi_status NapiAVSession::NewInstance(napi_env env, std::shared_ptr<AVSession>&
         int32_t ret = napiAVSession_->session_->RegisterCallback(napiAVSession_->callback_);
         CHECK_RETURN(ret == AVSESSION_SUCCESS, "register session callback fail", napi_generic_failure);
     }
-    SLOGI("NapiAVSession NewInstance sessionId=%{public}s***, sessionType:%{public}s",
-        napiAVSession_->sessionId_.substr(0, UNMASK_CHAR_NUM).c_str(),
-        napiAVSession_->sessionType_.c_str());
+    SLOGI("NapiAVSession NewInstance sessionId=%{public}s, sessionType:%{public}s, callback=%{public}p",
+        napiAVSession_->sessionId_.c_str(),
+        napiAVSession_->sessionType_.c_str(), napiAVSession_->callback_.get());
     if (currentSessionId_ != napiAVSession_->sessionId_) {
         currentSessionId_ = napiAVSession_->sessionId_;
-        currentCallback_ = napiAVSession_->callback_;
-        SLOGI("Update currentSessionId=%{public}s***, currentCallback=%{public}p",
-            currentSessionId_.substr(0, UNMASK_CHAR_NUM).c_str(), currentCallback_.get());
+        SLOGI("Update currentSessionId=%{public}s", currentSessionId_.c_str());
     } else {
-        SLOGI("SessionId same as current, keep currentCallback=%{public}p", currentCallback_.get());
+        SLOGI("SessionId same as current, currentSessionId=%{public}s", currentSessionId_.c_str());
     }
 
     napi_value property {};
@@ -380,6 +378,9 @@ napi_value NapiAVSession::OnEvent(napi_env env, napi_callback_info info)
         SLOGE("OnEvent failed : session is nullptr");
         return ThrowErrorAndReturn(env, "OnEvent failed : session is nullptr", ERR_SESSION_NOT_EXIST);
     }
+    SLOGI("OnEvent: sessionId=%{public}s, currentSessionId=%{public}s, currentCallback=%{public}p",
+        napiSession->sessionId_.c_str(),
+        currentSessionId_.c_str(), currentCallback_.get());
     if (napiSession->callback_ == nullptr) {
         napiSession->callback_ = std::make_shared<NapiAVSessionCallback>();
         if (napiSession->callback_ == nullptr) {
@@ -388,6 +389,12 @@ napi_value NapiAVSession::OnEvent(napi_env env, napi_callback_info info)
         int32_t ret = napiSession->session_->RegisterCallback(napiSession->callback_);
         if (ret != AVSESSION_SUCCESS) {
             return ThrowErrorAndReturnByErrCode(env, "OnEvent", ret);
+        }
+        SLOGI("OnEvent: create callback=%{public}p, sessionId=%{public}s",
+            napiSession->callback_.get(), napiSession->sessionId_.c_str());
+        if (currentSessionId_ == napiSession->sessionId_ && currentCallback_ == nullptr) {
+            currentCallback_ = napiSession->callback_;
+            SLOGI("OnEvent: set currentCallback=%{public}p", currentCallback_.get());
         }
     }
     if (it->second(env, napiSession, callback) != napi_ok) {
@@ -1807,9 +1814,9 @@ void NapiAVSession::TryReuseCallback(NapiAVSession* napiSession, const AAFwk::Wa
         SLOGI("TryReuseCallback: napiSession is nullptr");
         return;
     }
-    SLOGI("TryReuseCallback: sessionId=%{public}s***, currentSessionId=%{public}s***, currentCallback=%{public}p",
-        napiSession->sessionId_.substr(0, UNMASK_CHAR_NUM).c_str(),
-        currentSessionId_.substr(0, UNMASK_CHAR_NUM).c_str(), currentCallback_.get());
+    SLOGI("TryReuseCallback: sessionId=%{public}s, currentSessionId=%{public}s, currentCallback=%{public}p",
+        napiSession->sessionId_.c_str(),
+        currentSessionId_.c_str(), currentCallback_.get());
     std::string reuseCallback = extras.GetStringParam("reuseCallback");
     if (reuseCallback != "1" && reuseCallback != "true") {
         SLOGI("TryReuseCallback: reuseCallback param not set");
@@ -1821,8 +1828,7 @@ void NapiAVSession::TryReuseCallback(NapiAVSession* napiSession, const AAFwk::Wa
     }
     if (currentSessionId_ == napiSession->sessionId_) {
         napiSession->callback_ = currentCallback_;
-        SLOGI("TryReuseCallback: reuse success, sessionId=%{public}s***", 
-            currentSessionId_.substr(0, UNMASK_CHAR_NUM).c_str());
+        SLOGI("TryReuseCallback: reuse success, sessionId=%{public}s", currentSessionId_.c_str());
     } else {
         SLOGI("TryReuseCallback: sessionId mismatch, cannot reuse");
     }
@@ -2137,8 +2143,8 @@ napi_value NapiAVSession::Destroy(napi_env env, napi_callback_info info)
         if (napiSession != nullptr && ret == AVSESSION_SUCCESS) {
             napiSession->session_ = nullptr;
             napiSession->callback_ = nullptr;
-            SLOGI("Destroy session, currentSessionId=%{public}s***, currentCallback=%{public}p",
-                currentSessionId_.substr(0, UNMASK_CHAR_NUM).c_str(), currentCallback_.get());
+            SLOGI("Destroy session, currentSessionId=%{public}s, currentCallback=%{public}p",
+                currentSessionId_.c_str(), currentCallback_.get());
             if (napiSession->sessionId_ == currentSessionId_) {
                 currentCallback_ = nullptr;
             }
