@@ -142,9 +142,10 @@ NapiAVSession::~NapiAVSession()
 #endif
     std::lock_guard lockGuard(registerEventLock_);
     registerEventList_.clear();
-    if (currentNapiSession != nullptr && currentSessionId_ == sessionId_) {
-        SLOGI("Clear currentNapiSession, sessionId=%{public}s", sessionId_.c_str());
-        currentNapiSession = nullptr;
+    if (currentNapiSession_ != nullptr && currentSessionId_ == sessionId_) {
+        SLOGI("Clear currentNapiSession_, sessionId=%{public}s", currentSessionId_.c_str());
+        currentNapiSession_ = nullptr;
+        currentSessionId_.clear();
     }
 }
 
@@ -285,13 +286,13 @@ napi_status NapiAVSession::NewInstance(napi_env env, std::shared_ptr<AVSession>&
     napiAVSession_->sessionType_ = napiAVSession_->session_->GetSessionType();
     napiAVSession_->sessionTag_ = tag;
     napiAVSession_->elementName_ = elementName;
-    SLOGI("NapiAVSession NewInstance sessionId=%{public}s, sessionType:%{public}s",
-        napiAVSession_->sessionId_.c_str(),
+    SLOGI("NapiAVSession NewInstance sessionId=%{public}s***, sessionType:%{public}s",
+        napiAVSession_->sessionId_.substr(0, UNMASK_CHAR_NUM).c_str(),
         napiAVSession_->sessionType_.c_str());
 
     std::lock_guard<std::mutex> lock(currentNapiSessionMutex_);
-    if (currentNapiSession == nullptr || currentSessionId_ != napiAVSession_->sessionId_) {
-        currentNapiSession = napiAVSession_;
+    if (currentNapiSession_ == nullptr || currentSessionId_ != napiAVSession_->sessionId_) {
+        currentNapiSession_ = napiAVSession_;
         currentSessionId_ =  napiAVSession_->sessionId_;
     }
 
@@ -1805,9 +1806,6 @@ void NapiAVSession::TryReuseCallback(NapiAVSession* napiSession, const AAFwk::Wa
         SLOGI("TryReuseCallback: napiSession is nullptr");
         return;
     }
-    SLOGI("TryReuseCallback: sessionId=%{public}s, currentSessionId=%{public}s, currentCallback=%{public}p",
-        napiSession->sessionId_.c_str(),
-        currentSessionId_.c_str(), currentCallback_.get());
     std::string reuseCallback = extras.GetStringParam("reuseCallback");
     if (reuseCallback != "1" && reuseCallback != "true") {
         SLOGI("TryReuseCallback: reuseCallback param not set");
