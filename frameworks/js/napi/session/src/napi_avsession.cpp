@@ -280,6 +280,11 @@ napi_status NapiAVSession::NewInstance(napi_env env, std::shared_ptr<AVSession>&
     napiAVSession_->sessionType_ = napiAVSession_->session_->GetSessionType();
     napiAVSession_->sessionTag_ = tag;
     napiAVSession_->elementName_ = elementName;
+    if (napiAVSession_->callback_ == nullptr) {
+        napiAVSession_->callback_ = std::make_shared<NapiAVSessionCallback>();
+        int32_t ret = napiAVSession_->session_->RegisterCallback(napiAVSession_->callback_);
+        CHECK_RETURN(ret == AVSESSION_SUCCESS, "register session callback fail", napi_generic_failure);
+    }
     SLOGI("NapiAVSession NewInstance sessionId=%{public}s***, sessionType:%{public}s",
         napiAVSession_->sessionId_.substr(0, UNMASK_CHAR_NUM).c_str(),
         napiAVSession_->sessionType_.c_str());
