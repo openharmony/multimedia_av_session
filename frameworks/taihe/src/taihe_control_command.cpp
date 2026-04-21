@@ -27,11 +27,12 @@
 namespace ANI::AVSession {
 std::map<std::string, std::tuple<TaiheControlCommand::GetterType, TaiheControlCommand::SetterType, int32_t>>
     TaiheControlCommand::commandMap_ = {
-    {"play", {GetNoneParam, SetNoneParam, OHOS::AVSession::AVControlCommand::SESSION_CMD_PLAY}},
+    {"play", {GetPlayParam, SetNoneParam, OHOS::AVSession::AVControlCommand::SESSION_CMD_PLAY}},
     {"pause", {GetNoneParam, SetNoneParam, OHOS::AVSession::AVControlCommand::SESSION_CMD_PAUSE}},
     {"stop", {GetNoneParam, SetNoneParam, OHOS::AVSession::AVControlCommand::SESSION_CMD_STOP}},
-    {"playNext", {GetNoneParam, SetNoneParam, OHOS::AVSession::AVControlCommand::SESSION_CMD_PLAY_NEXT}},
-    {"playPrevious", {GetNoneParam, SetNoneParam, OHOS::AVSession::AVControlCommand::SESSION_CMD_PLAY_PREVIOUS}},
+    {"playNext", {GetPlayNextParam, SetNoneParam, OHOS::AVSession::AVControlCommand::SESSION_CMD_PLAY_NEXT}},
+    {"playPrevious",
+        {GetPlayPreviousParam, SetNoneParam, OHOS::AVSession::AVControlCommand::SESSION_CMD_PLAY_PREVIOUS}},
     {"fastForward", {GetForwardTime, SetForwardTime, OHOS::AVSession::AVControlCommand::SESSION_CMD_FAST_FORWARD}},
     {"rewind", {GetRewindTime, SetRewindTime, OHOS::AVSession::AVControlCommand::SESSION_CMD_REWIND}},
     {"seek", {GetSeekTime, SetSeekTime, OHOS::AVSession::AVControlCommand::SESSION_CMD_SEEK}},
@@ -102,6 +103,22 @@ static int32_t GetParameterLoopMode(const taihe::optional<AVControlParameterType
         return OHOS::AVSession::AVSESSION_SUCCESS;
     }
     return OHOS::AVSession::ERR_INVALID_PARAM;
+}
+
+static int32_t GetParameterCommandInfo(AVControlCommand in, OHOS::AVSession::AVControlCommand &out)
+{
+    CHECK_AND_RETURN_RET_LOG(in.commandInfo.has_value(), OHOS::AVSession::ERR_INVALID_PARAM,
+        "No CommandInfo");
+
+    // Processing optional playInfo
+    OHOS::AVSession::CommandInfo commandInfo;
+    std::string callerModuleNameStr;
+    TaiheUtils::GetOptionalString(in.commandInfo.value().callerModuleName, callerModuleNameStr);
+    commandInfo.SetCallerModuleName(callerModuleNameStr);
+    CHECK_AND_RETURN_RET_LOG(out.SetCommandInfo(commandInfo) == OHOS::AVSession::AVSESSION_SUCCESS,
+        OHOS::AVSession::ERR_INVALID_PARAM, "set commandInfo failed");
+    SLOGI("get callerModuleName:%{public}s", callerModuleNameStr.c_str());
+    return OHOS::AVSession::AVSESSION_SUCCESS;
 }
 
 static taihe::optional<AVControlParameterType> ToTaiheParameterLoopMode(int32_t in)
@@ -197,6 +214,33 @@ int32_t TaiheControlCommand::SetNoneParam(OHOS::AVSession::AVControlCommand &in,
     return OHOS::AVSession::AVSESSION_SUCCESS;
 }
 
+int32_t TaiheControlCommand::GetPlayParam(AVControlCommand in, OHOS::AVSession::AVControlCommand &out)
+{
+    std::string playParam {};
+    int32_t status = GetParameter(in.parameter, playParam);
+    out.SetPlayParam(status == OHOS::AVSession::AVSESSION_SUCCESS ? playParam : "");
+    CHECK_AND_RETURN_RET_LOG(GetParameterCommandInfo(in, out) == OHOS::AVSession::AVSESSION_SUCCESS,
+        OHOS::AVSession::AVSESSION_SUCCESS, "GetPlayParam commandInfo fail");
+
+    return OHOS::AVSession::AVSESSION_SUCCESS;
+}
+
+int32_t TaiheControlCommand::GetPlayNextParam(AVControlCommand in, OHOS::AVSession::AVControlCommand &out)
+{
+    CHECK_AND_RETURN_RET_LOG(GetParameterCommandInfo(in, out) == OHOS::AVSession::AVSESSION_SUCCESS,
+        OHOS::AVSession::AVSESSION_SUCCESS, "GetPlayNextParam commandInfo fail");
+
+    return OHOS::AVSession::AVSESSION_SUCCESS;
+}
+
+int32_t TaiheControlCommand::GetPlayPreviousParam(AVControlCommand in, OHOS::AVSession::AVControlCommand &out)
+{
+    CHECK_AND_RETURN_RET_LOG(GetParameterCommandInfo(in, out) == OHOS::AVSession::AVSESSION_SUCCESS,
+        OHOS::AVSession::AVSESSION_SUCCESS, "GetPlayPreviousParam commandInfo fail");
+
+    return OHOS::AVSession::AVSESSION_SUCCESS;
+}
+
 int32_t TaiheControlCommand::GetSpeed(AVControlCommand in, OHOS::AVSession::AVControlCommand &out)
 {
     double speed = 0;
@@ -233,6 +277,9 @@ int32_t TaiheControlCommand::GetForwardTime(AVControlCommand in, OHOS::AVSession
     SLOGD("GetForwardTime with time %{public}jd", static_cast<int64_t>(time));
     CHECK_AND_RETURN_RET_LOG(out.SetForwardTime(time) == OHOS::AVSession::AVSESSION_SUCCESS,
         OHOS::AVSession::ERR_INVALID_PARAM, "set ForwardTime failed");
+    CHECK_AND_RETURN_RET_LOG(GetParameterCommandInfo(in, out) == OHOS::AVSession::AVSESSION_SUCCESS,
+        OHOS::AVSession::AVSESSION_SUCCESS, "GetForwardTime commandInfo fail");
+
     return OHOS::AVSession::AVSESSION_SUCCESS;
 }
 
@@ -259,6 +306,9 @@ int32_t TaiheControlCommand::GetRewindTime(AVControlCommand in, OHOS::AVSession:
     SLOGD("GetRewindTime with time %{public}jd", static_cast<int64_t>(time));
     CHECK_AND_RETURN_RET_LOG(out.SetRewindTime(time) == OHOS::AVSession::AVSESSION_SUCCESS,
         OHOS::AVSession::ERR_INVALID_PARAM, "set RewindTime failed");
+    CHECK_AND_RETURN_RET_LOG(GetParameterCommandInfo(in, out) == OHOS::AVSession::AVSESSION_SUCCESS,
+        OHOS::AVSession::AVSESSION_SUCCESS, "GetForwardTime commandInfo fail");
+
     return OHOS::AVSession::AVSESSION_SUCCESS;
 }
 

@@ -910,7 +910,7 @@ static HWTEST_F(AVSessionServiceStubTest, HandleGetSessionDescriptors001, TestSi
  
 /**
  * @tc.name: HandleSendSystemCommonCommand001
- * @tc.desc: Test HandleSendSystemCommonCommand
+ * @tc.desc: Test HandleSendSystemCommonCommand command is null
  * @tc.type: FUNC
  */
 static HWTEST_F(AVSessionServiceStubTest, HandleSendSystemCommonCommand001, TestSize.Level0)
@@ -927,7 +927,7 @@ static HWTEST_F(AVSessionServiceStubTest, HandleSendSystemCommonCommand001, Test
  
 /**
  * @tc.name: HandleSendSystemCommonCommand002
- * @tc.desc: Test HandleSendSystemCommonCommand
+ * @tc.desc: Test HandleSendSystemCommonCommand commandArgs is null
  * @tc.type: FUNC
  */
 static HWTEST_F(AVSessionServiceStubTest, HandleSendSystemCommonCommand002, TestSize.Level0)
@@ -945,7 +945,7 @@ static HWTEST_F(AVSessionServiceStubTest, HandleSendSystemCommonCommand002, Test
 
 /**
  * @tc.name: HandleSendSystemCommonCommand003
- * @tc.desc: Test HandleSendSystemCommonCommand
+ * @tc.desc: Test HandleSendSystemCommonCommand all parameters are valid
  * @tc.type: FUNC
  */
 static HWTEST_F(AVSessionServiceStubTest, HandleSendSystemCommonCommand003, TestSize.Level0)

@@ -99,6 +99,9 @@ void AvSessionServiceFuzzer::FuzzOnRemoteRequest()
     if (ret == 0) {
         SLOGI("OnRemoteRequest ERR_NONE");
     }
+    if (CollaborationManagerHiPlay::instance_ != nullptr) {
+        CollaborationManagerHiPlay::GetInstance().ReleaseInstance();
+    }
 }
 
 void AvSessionServiceFuzzer::FuzzTests()
