@@ -104,7 +104,6 @@ private:
         OHOS::AVSession::AVMetaData metaData);
 
     static void BuildErrorContext(std::shared_ptr<ContextBase> context, int32_t ret);
-    static void BuildDestroyErrorContext(std::shared_ptr<ContextBase> context, int32_t ret);
     static void TryReuseCallback(NapiAVSession* napiSession, const AAFwk::WantParams& extras);
     static napi_status OnPlay(napi_env env, NapiAVSession* napiSession, napi_value callback);
     static napi_status OnPause(napi_env env, NapiAVSession* napiSession, napi_value callback);
@@ -182,6 +181,8 @@ private:
     static std::mutex syncMutex_;
     static std::mutex syncAsyncMutex_;
     static std::mutex downloadAVQImgMutex_;
+    static std::mutex currentNapiSessionMutex_;
+    static std::shared_ptr<NapiAVSession> currentNapiSession_;
     static std::condition_variable syncCond_;
     static std::condition_variable syncAsyncCond_;
     static int32_t playBackStateRet_;
@@ -189,7 +190,6 @@ private:
     static std::recursive_mutex destroyLock_;
     static bool isNapiSessionDestroy_;
     static std::string currentSessionId_;
-    static std::shared_ptr<NapiAVSessionCallback> currentCallback_;
 
     static std::map<std::string, OnEventHandlerType> onEventHandlers_;
     static std::map<std::string, OffEventHandlerType> offEventHandlers_;
