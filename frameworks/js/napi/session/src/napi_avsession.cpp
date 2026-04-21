@@ -280,11 +280,6 @@ napi_status NapiAVSession::NewInstance(napi_env env, std::shared_ptr<AVSession>&
     napiAVSession_->sessionType_ = napiAVSession_->session_->GetSessionType();
     napiAVSession_->sessionTag_ = tag;
     napiAVSession_->elementName_ = elementName;
-    if (napiAVSession_->callback_ == nullptr) {
-        napiAVSession_->callback_ = std::make_shared<NapiAVSessionCallback>();
-        int32_t ret = napiAVSession_->session_->RegisterCallback(napiAVSession_->callback_);
-        CHECK_RETURN(ret == AVSESSION_SUCCESS, "register session callback fail", napi_generic_failure);
-    }
     SLOGI("NapiAVSession NewInstance sessionId=%{public}s, sessionType:%{public}s, callback=%{public}p",
         napiAVSession_->sessionId_.c_str(),
         napiAVSession_->sessionType_.c_str(), napiAVSession_->callback_.get());
@@ -392,7 +387,7 @@ napi_value NapiAVSession::OnEvent(napi_env env, napi_callback_info info)
         }
         SLOGI("OnEvent: create callback=%{public}p, sessionId=%{public}s",
             napiSession->callback_.get(), napiSession->sessionId_.c_str());
-        if (currentSessionId_ == napiSession->sessionId_ && currentCallback_ == nullptr) {
+        if (currentSessionId_ != napiSession->sessionId_ || currentCallback_ == nullptr) {
             currentCallback_ = napiSession->callback_;
             SLOGI("OnEvent: set currentCallback=%{public}p", currentCallback_.get());
         }
