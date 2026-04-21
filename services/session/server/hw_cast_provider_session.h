@@ -62,6 +62,7 @@ public:
     void OnDeviceStateChange(const CastEngine::DeviceStateInfo &stateInfo);
     void SendCommandArgsToCast(const int32_t commandType, const std::string& params);
     void OnHiplayEventRecv(const int32_t eventId, const std::string& jsonParam);
+    int32_t GetProtocolType(uint32_t castProtocolType);
 
 private:
     void ComputeToastOnDeviceState(const CastEngine::DeviceStateInfo &stateInfo,
