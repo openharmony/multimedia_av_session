@@ -38,6 +38,7 @@
 #include "int_wrapper.h"
 #include "want_agent_helper.h"
 #include "avsession_hianalytics_report.h"
+#include "avmedia_center_control_type.h"
 #include "avsession_whitelist_config_manager.h"
 #include <filesystem>
 
@@ -1497,6 +1498,114 @@ int32_t AVSessionItem::DeleteSupportCommand(int32_t cmd)
     return AVSESSION_SUCCESS;
 }
 // LCOV_EXCL_STOP
+
+int32_t AVSessionItem::SetMediaCenterControlType(const std::vector<int32_t>& controlTypes)
+{
+    {
+        std::lock_guard lockGuard(avsessionItemLock_);
+        mediaCenterControlTypes_ = controlTypes;
+    }
+
+    SLOGI("SetMediaCenterControlType size=%{public}zu", controlTypes.size());
+
+    std::string apiParamString = "controlTypes: " + std::to_string(controlTypes.size());
+    HISYSEVENT_BEHAVIOR("SESSION_API_BEHAVIOR",
+        "API_NAME", "SetMediaCenterControlType", "BUNDLE_NAME", GetBundleName(),
+        "SESSION_ID", AVSessionUtils::GetAnonySessionId(GetSessionId()),
+        "SESSION_TAG", descriptor_.sessionTag_,
+        "SESSION_TYPE", GetSessionType(), "API_PARAM", apiParamString,
+        "ERROR_CODE", AVSESSION_SUCCESS, "ERROR_MSG", "SUCCESS");
+
+    {
+        std::lock_guard controllerLockGuard(controllersLock_);
+        for (const auto& [pid, controller] : controllers_) {
+            if (controller != nullptr) {
+                controller->HandleMediaCenterControlTypeChange(controlTypes);
+            }
+        }
+    }
+
+    return AVSESSION_SUCCESS;
+}
+
+int32_t AVSessionItem::GetMediaCenterControlType(std::vector<int32_t>& controlTypes)
+{
+    std::lock_guard lockGuard(avsessionItemLock_);
+    controlTypes = mediaCenterControlTypes_;
+    return AVSESSION_SUCCESS;
+}
+
+int32_t AVSessionItem::SetSupportedPlaySpeeds(const std::vector<double>& speeds)
+{
+    {
+        std::lock_guard lockGuard(avsessionItemLock_);
+        supportedPlaySpeeds_ = speeds;
+    }
+
+    SLOGI("SetSupportedPlaySpeeds size=%{public}zu", speeds.size());
+
+    std::string apiParamString = "speeds: " + std::to_string(speeds.size());
+    HISYSEVENT_BEHAVIOR("SESSION_API_BEHAVIOR",
+        "API_NAME", "SetSupportedPlaySpeeds", "BUNDLE_NAME", GetBundleName(),
+        "SESSION_ID", AVSessionUtils::GetAnonySessionId(GetSessionId()),
+        "SESSION_TAG", descriptor_.sessionTag_,
+        "SESSION_TYPE", GetSessionType(), "API_PARAM", apiParamString,
+        "ERROR_CODE", AVSESSION_SUCCESS, "ERROR_MSG", "SUCCESS");
+
+    {
+        std::lock_guard controllerLockGuard(controllersLock_);
+        for (const auto& [pid, controller] : controllers_) {
+            if (controller != nullptr) {
+                controller->HandleSupportedPlaySpeedsChange(speeds);
+            }
+        }
+    }
+
+    return AVSESSION_SUCCESS;
+}
+
+int32_t AVSessionItem::GetSupportedPlaySpeeds(std::vector<double>& speeds)
+{
+    std::lock_guard lockGuard(avsessionItemLock_);
+    speeds = supportedPlaySpeeds_;
+    return AVSESSION_SUCCESS;
+}
+
+int32_t AVSessionItem::SetSupportedLoopModes(const std::vector<int32_t>& loopModes)
+{
+    {
+        std::lock_guard lockGuard(avsessionItemLock_);
+        supportedLoopModes_ = loopModes;
+    }
+
+    SLOGI("SetSupportedLoopModes size=%{public}zu", loopModes.size());
+
+    std::string apiParamString = "loopModes: " + std::to_string(loopModes.size());
+    HISYSEVENT_BEHAVIOR("SESSION_API_BEHAVIOR",
+        "API_NAME", "SetSupportedLoopModes", "BUNDLE_NAME", GetBundleName(),
+        "SESSION_ID", AVSessionUtils::GetAnonySessionId(GetSessionId()),
+        "SESSION_TAG", descriptor_.sessionTag_,
+        "SESSION_TYPE", GetSessionType(), "API_PARAM", apiParamString,
+        "ERROR_CODE", AVSESSION_SUCCESS, "ERROR_MSG", "SUCCESS");
+
+    {
+        std::lock_guard controllerLockGuard(controllersLock_);
+        for (const auto& [pid, controller] : controllers_) {
+            if (controller != nullptr) {
+                controller->HandleSupportedLoopModesChange(loopModes);
+            }
+        }
+    }
+
+    return AVSESSION_SUCCESS;
+}
+
+int32_t AVSessionItem::GetSupportedLoopModes(std::vector<int32_t>& loopModes)
+{
+    std::lock_guard lockGuard(avsessionItemLock_);
+    loopModes = supportedLoopModes_;
+    return AVSESSION_SUCCESS;
+}
 
 int32_t AVSessionItem::SetSessionEvent(const std::string& event, const AAFwk::WantParams& args)
 {
@@ -2967,6 +3076,13 @@ void AVSessionItem::HandleOnSetSpeed(const AVControlCommand& cmd)
     CHECK_AND_RETURN_LOG(callback_ != nullptr, "callback_ is nullptr");
     double speed = 0.0;
     CHECK_AND_RETURN_LOG(cmd.GetSpeed(speed) == AVSESSION_SUCCESS, "GetSpeed failed");
+    std::string apiParamString = "speed: " + std::to_string(speed);
+    HISYSEVENT_BEHAVIOR("SESSION_API_BEHAVIOR",
+        "API_NAME", "SetSpeed", "BUNDLE_NAME", GetBundleName(),
+        "SESSION_ID", AVSessionUtils::GetAnonySessionId(GetSessionId()),
+        "SESSION_TAG", descriptor_.sessionTag_,
+        "SESSION_TYPE", GetSessionType(), "API_PARAM", apiParamString,
+        "ERROR_CODE", AVSESSION_SUCCESS, "ERROR_MSG", "SUCCESS");
     callback_->OnSetSpeed(speed);
 }
 

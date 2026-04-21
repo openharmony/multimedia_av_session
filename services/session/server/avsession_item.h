@@ -152,6 +152,24 @@ public:
 
     int32_t DeleteSupportCommand(int32_t cmd) override;
 
+    int32_t SetMediaCenterControlType(const std::vector<int32_t>& controlTypes) override;
+
+    int32_t GetMediaCenterControlType(std::vector<int32_t>& controlTypes);
+
+    void HandleMediaCenterControlTypeChange(const std::vector<int32_t>& controlTypes);
+
+    int32_t SetSupportedPlaySpeeds(const std::vector<double>& speeds) override;
+
+    int32_t GetSupportedPlaySpeeds(std::vector<double>& speeds);
+
+    void HandleSupportedPlaySpeedsChange(const std::vector<double>& speeds);
+
+    int32_t SetSupportedLoopModes(const std::vector<int32_t>& loopModes) override;
+
+    int32_t GetSupportedLoopModes(std::vector<int32_t>& loopModes);
+
+    void HandleSupportedLoopModesChange(const std::vector<int32_t>& loopModes);
+
     int32_t DestroyTask(bool continuePlay = false);
 
     AVSessionDescriptor GetDescriptor();
@@ -525,6 +543,9 @@ private:
     AAFwk::WantParams extras_;
     std::vector<int32_t> supportedCmd_;
     std::vector<int32_t> supportedCastCmds_;
+    std::vector<int32_t> mediaCenterControlTypes_;
+    std::vector<double> supportedPlaySpeeds_;
+    std::vector<int32_t> supportedLoopModes_;
     sptr<IAVSessionCallback> callback_;
     std::shared_ptr<AVSessionCallback> callbackForMigrate_;
     std::function<void(AVSessionItem&)> serviceCallback_;
