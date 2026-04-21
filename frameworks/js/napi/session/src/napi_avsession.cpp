@@ -124,7 +124,8 @@ std::shared_ptr<NapiAVSession> NapiAVSession::napiAVSession_ = nullptr;
 std::recursive_mutex NapiAVSession::destroyLock_;
 bool NapiAVSession::isNapiSessionDestroy_ = false;
 std::string NapiAVSession::currentSessionId_;
-std::shared_ptr<NapiAVSessionCallback> NapiAVSession::currentCallback_;
+std::shared_ptr<NapiAVSession> NapiAVSession::currentNapiSession_;
+std::mutex NapiAVSession::currentNapiSessionMutex_;
 
 NapiAVSession::NapiAVSession()
 {
@@ -141,6 +142,10 @@ NapiAVSession::~NapiAVSession()
 #endif
     std::lock_guard lockGuard(registerEventLock_);
     registerEventList_.clear();
+    if (currentNapiSession != nullptr && currentSessionId_ == sessionId_) {
+        SLOGI("Clear currentNapiSession, sessionId=%{public}s", sessionId_.c_str());
+        currentNapiSession = nullptr;
+    }
 }
 
 napi_value NapiAVSession::Init(napi_env env, napi_value exports)
@@ -280,14 +285,14 @@ napi_status NapiAVSession::NewInstance(napi_env env, std::shared_ptr<AVSession>&
     napiAVSession_->sessionType_ = napiAVSession_->session_->GetSessionType();
     napiAVSession_->sessionTag_ = tag;
     napiAVSession_->elementName_ = elementName;
-    SLOGI("NapiAVSession NewInstance sessionId=%{public}s, sessionType:%{public}s, callback=%{public}p",
+    SLOGI("NapiAVSession NewInstance sessionId=%{public}s, sessionType:%{public}s",
         napiAVSession_->sessionId_.c_str(),
-        napiAVSession_->sessionType_.c_str(), napiAVSession_->callback_.get());
-    if (currentSessionId_ != napiAVSession_->sessionId_) {
-        currentSessionId_ = napiAVSession_->sessionId_;
-        SLOGI("Update currentSessionId=%{public}s", currentSessionId_.c_str());
-    } else {
-        SLOGI("SessionId same as current, currentSessionId=%{public}s", currentSessionId_.c_str());
+        napiAVSession_->sessionType_.c_str());
+
+    std::lock_guard<std::mutex> lock(currentNapiSessionMutex_);
+    if (currentNapiSession == nullptr || currentSessionId_ != napiAVSession_->sessionId_) {
+        currentNapiSession = napiAVSession_;
+        currentSessionId_ =  napiAVSession_->sessionId_;
     }
 
     napi_value property {};
@@ -373,9 +378,6 @@ napi_value NapiAVSession::OnEvent(napi_env env, napi_callback_info info)
         SLOGE("OnEvent failed : session is nullptr");
         return ThrowErrorAndReturn(env, "OnEvent failed : session is nullptr", ERR_SESSION_NOT_EXIST);
     }
-    SLOGI("OnEvent: sessionId=%{public}s, currentSessionId=%{public}s, currentCallback=%{public}p",
-        napiSession->sessionId_.c_str(),
-        currentSessionId_.c_str(), currentCallback_.get());
     if (napiSession->callback_ == nullptr) {
         napiSession->callback_ = std::make_shared<NapiAVSessionCallback>();
         if (napiSession->callback_ == nullptr) {
@@ -384,12 +386,6 @@ napi_value NapiAVSession::OnEvent(napi_env env, napi_callback_info info)
         int32_t ret = napiSession->session_->RegisterCallback(napiSession->callback_);
         if (ret != AVSESSION_SUCCESS) {
             return ThrowErrorAndReturnByErrCode(env, "OnEvent", ret);
-        }
-        SLOGI("OnEvent: create callback=%{public}p, sessionId=%{public}s",
-            napiSession->callback_.get(), napiSession->sessionId_.c_str());
-        if (currentSessionId_ != napiSession->sessionId_ || currentCallback_ == nullptr) {
-            currentCallback_ = napiSession->callback_;
-            SLOGI("OnEvent: set currentCallback=%{public}p", currentCallback_.get());
         }
     }
     if (it->second(env, napiSession, callback) != napi_ok) {
@@ -1817,12 +1813,13 @@ void NapiAVSession::TryReuseCallback(NapiAVSession* napiSession, const AAFwk::Wa
         SLOGI("TryReuseCallback: reuseCallback param not set");
         return;
     }
-    if (currentCallback_ == nullptr) {
-        SLOGI("TryReuseCallback: currentCallback is nullptr, cannot reuse");
+    std::lock_guard<std::mutex> lock(currentNapiSessionMutex_);
+    if (currentNapiSession_ == nullptr) {
+        SLOGI("currentNapiSession_ is nullptr");
         return;
     }
     if (currentSessionId_ == napiSession->sessionId_) {
-        napiSession->callback_ = currentCallback_;
+        napiSession->callback_ = currentNapiSession_->callback_;
         SLOGI("TryReuseCallback: reuse success, sessionId=%{public}s", currentSessionId_.c_str());
     } else {
         SLOGI("TryReuseCallback: sessionId mismatch, cannot reuse");
@@ -2138,33 +2135,24 @@ napi_value NapiAVSession::Destroy(napi_env env, napi_callback_info info)
         if (napiSession != nullptr && ret == AVSESSION_SUCCESS) {
             napiSession->session_ = nullptr;
             napiSession->callback_ = nullptr;
-            SLOGI("Destroy session, currentSessionId=%{public}s, currentCallback=%{public}p",
-                currentSessionId_.c_str(), currentCallback_.get());
-            if (napiSession->sessionId_ == currentSessionId_) {
-                currentCallback_ = nullptr;
-            }
+        } else if (ret == ERR_SESSION_NOT_EXIST) {
+            context->status = napi_generic_failure;
+            context->errMessage = "Destroy session failed : native session not exist";
+            context->errCode = NapiAVSessionManager::errcode_[ret];
+        } else if (ret == ERR_NO_PERMISSION) {
+            context->status = napi_generic_failure;
+            context->errMessage = "Destroy failed : native no permission";
+            context->errCode = NapiAVSessionManager::errcode_[ret];
         } else {
-            BuildDestroyErrorContext(context, ret);
+            context->status = napi_generic_failure;
+            context->errMessage = "Destroy session failed : native server exception";
+            context->errCode = NapiAVSessionManager::errcode_[ret];
         }
     };
     auto complete = [env](napi_value& output) {
         output = NapiUtils::GetUndefinedValue(env);
     };
     return NapiAsyncWork::Enqueue(env, context, "Destroy", executor, complete);
-}
-
-void NapiAVSession::BuildDestroyErrorContext(std::shared_ptr<ContextBase> context, int32_t ret)
-{
-    // Sets error context (status, message, error code) for Destroy operation based on return code
-    context->status = napi_generic_failure;
-    context->errCode = NapiAVSessionManager::errcode_[ret];
-    if (ret == ERR_SESSION_NOT_EXIST) {
-        context->errMessage = "Destroy session failed : native session not exist";
-    } else if (ret == ERR_NO_PERMISSION) {
-        context->errMessage = "Destroy failed : native no permission";
-    } else {
-        context->errMessage = "Destroy session failed : native server exception";
-    }
 }
 
 napi_value NapiAVSession::SetSessionEvent(napi_env env, napi_callback_info info)
