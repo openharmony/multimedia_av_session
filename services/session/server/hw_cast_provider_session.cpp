@@ -272,6 +272,7 @@ void HwCastProviderSession::OnDeviceState(const CastEngine::DeviceStateInfo &sta
         deviceInfo.deviceName_ = "RemoteCast";
         deviceInfo.castCategory_ = AVCastCategory::CATEGORY_LOCAL;
         deviceInfo.audioCapabilities_.streamInfos_ = streamInfos;
+        deviceInfo.supportedProtocols_ = GetProtocolType(castRemoteDevice.protocolCapabilities);
         if (listener != nullptr) {
             SLOGI("trigger the OnCastStateChange for ListSize %{public}d", static_cast<int>(tempListenerList.size()));
             listener->OnCastStateChange(static_cast<int>(deviceState), deviceInfo);
@@ -402,5 +403,14 @@ void HwCastProviderSession::ReportDeviceCastingTime(int32_t deviceState, const s
             deviceConnectMap_.erase(it);
         }
     }
+}
+
+int32_t HwCastProviderSession::GetProtocolType(uint32_t castProtocolType)
+{
+    int32_t protocolType = (castProtocolType & ProtocolType::TYPE_CAST_PLUS_STREAM) |
+        (castProtocolType & ProtocolType::TYPE_DLNA) |
+        ((castProtocolType & static_cast<int>(CastEngine::ProtocolType::CAST_PLUS_AUDIO)) ?
+            ProtocolType::TYPE_CAST_PLUS_AUDIO : 0);
+    return protocolType;
 }
 }
