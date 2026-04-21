@@ -2848,7 +2848,9 @@ HWTEST_F(AVSessionServiceTest, GetSessionDescriptors004, TestSize.Level0)
     int32_t category = SessionCategory::CATEGORY_HIPLAY;
     ASSERT_TRUE(avservice_ != nullptr);
     avservice_->pcmCastSession_ = std::make_shared<PcmCastSession>();
-    avservice_->pcmCastSession_->castState_ = 1;
+    DeviceInfo deviceInfo;
+    deviceInfo.hiPlayDeviceInfo_.castMode_ = 1;
+    avservice_->pcmCastSession_->tempDeviceInfo_ = deviceInfo;
     std::vector<AVSessionDescriptor> descriptors;
     int32_t ret = avservice_->GetSessionDescriptors(category, descriptors);
     EXPECT_EQ(ret, AVSESSION_SUCCESS);
@@ -2903,7 +2905,9 @@ HWTEST_F(AVSessionServiceTest, OnClientDied001, TestSize.Level0)
     SLOGI("OnClientDied001 begin!");
     ASSERT_TRUE(avservice_ != nullptr);
     avservice_->pcmCastSession_ = std::make_shared<PcmCastSession>();
-    avservice_->pcmCastSession_->castMode_ = 2;
+    DeviceInfo deviceInfo;
+    deviceInfo.hiPlayDeviceInfo_.castMode_ = 2;
+    avservice_->pcmCastSession_->tempDeviceInfo_ = deviceInfo;
     avservice_->pcmCastSession_->descriptor_.uid_ = 1;
     pid_t uid = 1;
     pid_t pid = 1;
@@ -2923,7 +2927,9 @@ HWTEST_F(AVSessionServiceTest, OnClientDied002, TestSize.Level0)
     SLOGI("OnClientDied002 begin!");
     ASSERT_TRUE(avservice_ != nullptr);
     avservice_->pcmCastSession_ = std::make_shared<PcmCastSession>();
-    avservice_->pcmCastSession_->castMode_ = 1;
+    DeviceInfo deviceInfo;
+    deviceInfo.hiPlayDeviceInfo_.castMode_ = 1;
+    avservice_->pcmCastSession_->tempDeviceInfo_ = deviceInfo;
     avservice_->pcmCastSession_->descriptor_.uid_ = 1;
     pid_t uid = 1;
     pid_t pid = 1;
