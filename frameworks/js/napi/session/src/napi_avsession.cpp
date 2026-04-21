@@ -143,7 +143,6 @@ NapiAVSession::~NapiAVSession()
     std::lock_guard lockGuard(registerEventLock_);
     registerEventList_.clear();
     if (currentNapiSession_ != nullptr && currentSessionId_ == sessionId_) {
-        SLOGI("Clear currentNapiSession_, sessionId=%{public}s", currentSessionId_.c_str());
         currentNapiSession_ = nullptr;
         currentSessionId_.clear();
     }
@@ -1818,7 +1817,7 @@ void NapiAVSession::TryReuseCallback(NapiAVSession* napiSession, const AAFwk::Wa
     }
     if (currentSessionId_ == napiSession->sessionId_) {
         napiSession->callback_ = currentNapiSession_->callback_;
-        SLOGI("TryReuseCallback: reuse success, sessionId=%{public}s", currentSessionId_.c_str());
+        SLOGI("TryReuseCallback: reuse success");
     } else {
         SLOGI("TryReuseCallback: sessionId mismatch, cannot reuse");
     }
