@@ -201,7 +201,7 @@ int32_t PcmCastSession::SubStartCast(const OutputDeviceInfo& outputDeviceInfo,
     int32_t ret = AVRouter::GetInstance().AddDevice(castId, outputDeviceInfo, 0);
     if (ret == AVSESSION_SUCCESS) {
         castHandleDeviceId_ = outputDeviceInfo.deviceInfos_[0].deviceId_;
-        SLOGI("PcmCastSession start cast check handle set to %{public}lld", castHandle_);
+        SLOGI("PcmCastSession start cast check handle set to %{public}" PRId64, castHandle_);
     } else {
         DestroyTask();
     }
