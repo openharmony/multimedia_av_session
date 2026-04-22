@@ -158,7 +158,7 @@ int32_t PcmCastSession::StartCast(const OutputDeviceInfo& outputDeviceInfo,
  
             return ERR_REPEAT_CAST;
         } else {
-            SLOGI("cast check with pre cast alive %{public}lld, unregister callback", castHandle_);
+            SLOGI("cast check with pre cast alive %{public}" PRId64 ", unregister callback", castHandle_);
             multiDeviceState_ = MultiDeviceState::CASTING_SWITCH_DEVICE;
             newOutputDeviceInfo_ = outputDeviceInfo;
             newSessionToken_ = sessionToken;
