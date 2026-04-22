@@ -2496,6 +2496,9 @@ void AVSessionService::AddAvQueueInfoToFile(AVSessionItem& session)
         DoMetadataImgClean(meta);
         return;
     }
+#ifdef ENABLE_AVSESSION_SYSEVENT_CONTROL
+    AVSessionSysEvent::GetInstance().UpdateSupportAvqueue(session.GetBundleName(), true);
+#endif
     if (!SaveAvQueueInfo(oldContent, bundleName, meta, userId)) {
         SLOGE("SaveAvQueueInfo same avqueueinfo, Return!");
         DoMetadataImgClean(meta);
@@ -4818,50 +4821,15 @@ int32_t AVSessionService::UploadDesktopLyricOperationInfo(const std::string &ses
 }
 
 #ifdef ENABLE_AVSESSION_SYSEVENT_CONTROL
-static std::string GetVersionName(const std::string& bundleName)
-{
-    std::string versionName = "";
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (samgr == nullptr) {
-        SLOGE("Get ability manager failed");
-        return versionName;
-    }
-
-    sptr<IRemoteObject> object = samgr->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
-    if (object == nullptr) {
-        SLOGE("object is NULL.");
-        return versionName;
-    }
-
-    sptr<OHOS::AppExecFwk::IBundleMgr> bms = iface_cast<OHOS::AppExecFwk::IBundleMgr>(object);
-    if (bms == nullptr) {
-        SLOGE("bundle manager service is NULL.");
-        return versionName;
-    }
-
-    AppExecFwk::BundleInfo bundleInfo;
-    if (!bms->GetBundleInfo(bundleName,
-        static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
-        bundleInfo, AppExecFwk::Constants::ALL_USERID)) {
-            SLOGE("GetBundleInfo=%{public}s fail", bundleName.c_str());
-            return versionName;
-    }
-    versionName = bundleInfo.versionName;
-    if (versionName.empty()) {
-        SLOGE("get versionName form application failed.");
-        return versionName;
-    }
-    return versionName;
-}
-
 void AVSessionService::ReportSessionState(const sptr<AVSessionItem>& session, SessionState state)
 {
     if (session == nullptr) {
         SLOGE("ReportSessionState session is null");
         return;
     }
-    AVSessionSysEvent::GetInstance().UpdateState(session->GetBundleName(),
-        GetVersionName(session->GetBundleName()), state);
+    std::string bundleName = session->GetBundleName();
+    AVSessionSysEvent::GetInstance().UpdateState(bundleName,
+        BundleStatusAdapter::GetInstance().GetAppVersion(bundleName), state, session->GetSessionType());
 }
 
 void AVSessionService::ReportSessionControl(const std::string& bundleName, int32_t cmd)
@@ -4869,8 +4837,10 @@ void AVSessionService::ReportSessionControl(const std::string& bundleName, int32
     if (cmd == AVControlCommand::SESSION_CMD_PLAY ||
         cmd == AVControlCommand::SESSION_CMD_PAUSE ||
         cmd == CONTROL_COLD_START) {
+        auto uid = GetCallingUid();
+        auto callerBundleName = BundleStatusAdapter::GetInstance().GetBundleNameFromUid(uid);
         AVSessionSysEvent::GetInstance().UpdateControl(bundleName, cmd,
-            BundleStatusAdapter::GetInstance().GetBundleNameFromUid(GetCallingUid()));
+            callerBundleName.empty() ? std::to_string(uid) : callerBundleName);
     }
 }
 

@@ -56,13 +56,13 @@ public:
         ptr_ = ptr;
     }
 
-    void OnCastStateChange(int32_t castState, DeviceInfo deviceInfo, bool isNeedRemove)
+    void OnCastStateChange(int32_t castState, DeviceInfo deviceInfo, bool isNeedRemove, int32_t reasonCode)
     {
         std::unique_lock lock(mutex_);
         sptr<AVSessionItem> sharedPtr = ptr_.promote();
         lock.unlock();
         CHECK_AND_RETURN_LOG(sharedPtr != nullptr, "sptr is nullptr in OnCastStateChange");
-        sharedPtr->OnCastStateChange(castState, deviceInfo, isNeedRemove);
+        sharedPtr->OnCastStateChange(castState, deviceInfo, isNeedRemove, reasonCode);
     }
 
     void OnCastEventRecv(int32_t errorCode, std::string& errorMsg)
@@ -93,7 +93,7 @@ public:
 
     void DealLocalState(const int32_t castState, const OutputDeviceInfo& outputDeviceInfo);
 
-    void OnCastStateChange(int32_t castState, DeviceInfo deviceInfo, bool isNeedRemove);
+    void OnCastStateChange(int32_t castState, DeviceInfo deviceInfo, bool isNeedRemove, int32_t reasonCode);
 
     void OnCastEventRecv(int32_t errorCode, std::string& errorMsg);
 
@@ -211,6 +211,9 @@ public:
     void HandleMediaKeyEvent(const MMI::KeyEvent& keyEvent, const CommandInfo& cmdInfo = CommandInfo{});
 
     void HandleOutputDeviceChange(const int32_t connectionState, const OutputDeviceInfo& outputDeviceInfo);
+
+    void ResetCastControlInfo(int32_t castState, int32_t reasonCode,
+        const OutputDeviceInfo& outputDeviceInfo);
 
     void DealOutputDeviceChange(const int32_t castState, const OutputDeviceInfo& outputDeviceInfo);
 
@@ -365,6 +368,8 @@ public:
 
     int32_t GetAllCastDisplays(std::vector<CastDisplayInfo>& castDisplays) override;
 
+    void SubSetExtrasInner();
+
     void SetExtrasInner(AAFwk::IArray* list);
 
     bool IsAppSupportCast();
@@ -434,8 +439,8 @@ private:
     int32_t DoContinuousTaskRegister();
     int32_t DoContinuousTaskUnregister();
     void ReportSetAVMetaDataInfo(const AVMetaData& meta);
-    std::string GetAnonymousDeviceId(std::string deviceId);
     void ReportAVCastControllerInfo();
+    void ReportOnPlayerError(int32_t errorCode, const std::string& errorMsg);
     void InitAVCastControllerProxy();
     bool CheckTitleChange(const AVMetaData& meta);
     void CheckUseAVMetaData(const AVMetaData& meta);
@@ -553,8 +558,13 @@ private:
     int32_t disconnectStateFromCast_ = 5;
     int32_t connectStateFromCast_ = 6;
     int32_t authingStateFromCast_ = 10;
+    int32_t mirrorToStream_ = 11;
     int32_t castDisconnectStateInAVSession_ = 6;
     int32_t removeCmdStep_ = 1000;
+    int32_t reasonShowTrustSelectUI_ = 10003;
+    int32_t noReasonCode_ = 0;
+    std::string mirrorToStreamCast_ = "MirrorToStreamCast";
+    std::string streamCast_ = "StreamCast";
 
     volatile bool isDestroyed_ = false;
 
