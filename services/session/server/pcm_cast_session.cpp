@@ -184,7 +184,6 @@ int32_t PcmCastSession::SubStartCast(const OutputDeviceInfo& outputDeviceInfo,
 {
     castHandle_ = AVRouter::GetInstance().StartCast(outputDeviceInfo, serviceNameStatePair, "pcmCastSession");
     CHECK_AND_RETURN_RET_LOG(castHandle_ != AVSESSION_ERROR, AVSESSION_ERROR, "StartCast failed");
-    SLOGI("PcmCastSession StartCast-castHandle_ %{public}" PRId64, castHandle_);
     AVRouter::GetInstance().RegisterCallback(castHandle_, shared_from_this(),
         "pcmCastSession", outputDeviceInfo.deviceInfos_[0]);
 
@@ -202,7 +201,7 @@ int32_t PcmCastSession::SubStartCast(const OutputDeviceInfo& outputDeviceInfo,
     int32_t ret = AVRouter::GetInstance().AddDevice(castId, outputDeviceInfo, 0);
     if (ret == AVSESSION_SUCCESS) {
         castHandleDeviceId_ = outputDeviceInfo.deviceInfos_[0].deviceId_;
-        SLOGI("PcmCastSession StartCast castHandleDeviceId_: %{public}s", castHandleDeviceId_.c_str());
+        SLOGI("PcmCastSession start cast check handle set to %{public}lld", castHandle_);
     } else {
         DestroyTask();
     }
