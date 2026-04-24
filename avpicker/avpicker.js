@@ -122,6 +122,7 @@ export class AVCastPicker extends ViewPU {
         this.__isSubMenuExpanded = new ObservedPropertySimplePU(false, this, 'isSubMenuExpanded');
         this.setInitiallyProvidedValue(e11);
         this.declareWatch('isMenuShow', this.MenuStateChange);
+        this.declareWatch('isSubMenuExpanded', this.MenuStateChange);
         this.declareWatch('roomListService', this.roomListChange);
         this.declareWatch('playTaskIdStr', this.homeMusicPlayTaskIdChange);
         this.declareWatch('houseMusicIsSelect', this.selectHomeMusicSys);
@@ -689,6 +690,7 @@ export class AVCastPicker extends ViewPU {
     MenuStateChange() {
         if (this.extensionProxy != null) {
             this.extensionProxy.send({ 'isMenuShow': this.isMenuShow });
+            this.extensionProxy.send({ 'isSubMenuExpanded': this.isSubMenuExpanded });
             let d3 = (this.isMenuShow && this.houseMusicIsSelect);
             this.extensionProxy.send({ 'isSelectHomeMusicSys': d3 });
         }
