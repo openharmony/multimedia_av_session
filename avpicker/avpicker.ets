@@ -236,7 +236,7 @@ export struct AVCastPicker {
   /**
    * Whether to display the menu.
    */
-  @State@Watch('MenuStateChange') isMenuShow: boolean = false;
+  @State @Watch('MenuStateChange') isMenuShow: boolean = false;
 
   /**
    * Touch item index.
@@ -320,7 +320,7 @@ export struct AVCastPicker {
   private pickerCountOnCreation: number = 0;
   @State isDisabledByPickerLimit: boolean = false;
   @State isDeviceLevel: boolean = true;
-  @State isSubMenuExpanded: boolean = false;
+  @State @Watch('MenuStateChange') isSubMenuExpanded: boolean = false;
 
   private static currentPickerCount: number = 0;
 
@@ -344,6 +344,7 @@ export struct AVCastPicker {
   MenuStateChange() {
     if (this.extensionProxy != null) {
       this.extensionProxy.send({ 'isMenuShow': this.isMenuShow });
+      this.extensionProxy.send({ 'isSubMenuExpanded': this.isSubMenuExpanded });
       let needListenKeyInput = (this.isMenuShow && this.houseMusicIsSelect);
       this.extensionProxy.send({ 'isSelectHomeMusicSys': needListenKeyInput });
     }
