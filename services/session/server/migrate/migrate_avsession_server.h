@@ -196,7 +196,7 @@ private:
 
     void HandleNeedStateTimer();
 
-    static constexpr int64_t LONG_PAUSE_TIMER_INTERVAL = 5 * 60 * 1000; // 5 minutes
+    static constexpr int64_t longPauseTimerInterval = 5 * 60 * 1000; // 5 minutes
     void HandleLongPauseTimer();
     std::atomic<bool> hasLongPauseNotified_ = false;
 

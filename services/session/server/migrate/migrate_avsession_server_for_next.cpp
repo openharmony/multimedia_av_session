@@ -154,7 +154,7 @@ void MigrateAVSessionServer::HandleFocusPlaybackStateChange(const std::string &s
             AVSessionEventHandler::GetInstance().AVSessionRemoveTask("LongPauseTimer");
             auto timerCallback = [this]() { HandleLongPauseTimer(); };
             AVSessionEventHandler::GetInstance().AVSessionPostTask(timerCallback, "LongPauseTimer",
-                LONG_PAUSE_TIMER_INTERVAL);
+                longPauseTimerInterval);
             SLOGI("HandleFocusPlaybackStateChange start 5min long pause timer");
         } else if (newState == AVPlaybackState::PLAYBACK_STATE_PLAY) {
             // Reset timer to 0 on resume, notify resume if long pause was already published
