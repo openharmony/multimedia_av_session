@@ -1454,5 +1454,81 @@ static HWTEST_F(AVSessionServiceTestExt, PcmCastSessionSubStartCast002, TestSize
 #endif
     EXPECT_NE(g_AVSessionService, nullptr);
 }
+
+/**
+ * @tc.name: SetPcMode001
+ * @tc.desc: Test SetPcMode with isPcMode true
+ * @tc.type: FUNC
+ * @tc.require: #I5Y4MZ
+ */
+static HWTEST_F(AVSessionServiceTestExt, SetPcMode001, TestSize.Level1)
+{
+    CHECK_AND_RETURN(g_AVSessionService != nullptr);
+    g_AVSessionService->SetPcMode(true);
+    EXPECT_EQ(g_AVSessionService->isPcMode_.load(), true);
+}
+
+/**
+ * @tc.name: SetPcMode002
+ * @tc.desc: Test SetPcMode with isPcMode false
+ * @tc.type: FUNC
+ * @tc.require: #I5Y4MZ
+ */
+static HWTEST_F(AVSessionServiceTestExt, SetPcMode002, TestSize.Level1)
+{
+    CHECK_AND_RETURN(g_AVSessionService != nullptr);
+    g_AVSessionService->SetPcMode(false);
+    EXPECT_EQ(g_AVSessionService->isPcMode_.load(), false);
+}
+
+/**
+ * @tc.name: NotifySupportExtendedScreen001
+ * @tc.desc: Test NotifySupportExtendedScreen with isSupport true
+ * @tc.type: FUNC
+ * @tc.require: #I5Y4MZ
+ */
+static HWTEST_F(AVSessionServiceTestExt, NotifySupportExtendedScreen001, TestSize.Level1)
+{
+    CHECK_AND_RETURN(g_AVSessionService != nullptr);
+#ifdef CASTPLUS_CAST_ENGINE_ENABLE
+    OHOS::AppExecFwk::ElementName elementName;
+    elementName.SetBundleName("testBundle");
+    elementName.SetAbilityName("testAbility");
+    OHOS::sptr<AVSessionItem> session = g_AVSessionService->CreateSessionInner(
+        "testTag", AVSession::SESSION_TYPE_AUDIO, false, elementName);
+    CHECK_AND_RETURN(session != nullptr);
+    session->SetSupportExtendedScreen(false);
+    g_AVSessionService->NotifySupportExtendedScreen(true);
+    std::vector<CastDisplayInfo> castDisplays;
+    int32_t ret = session->GetAllCastDisplays(castDisplays);
+    EXPECT_EQ(ret, AVSESSION_SUCCESS);
+    g_AVSessionService->HandleSessionRelease(session->GetSessionId());
+#endif
+}
+
+/**
+ * @tc.name: NotifySupportExtendedScreen002
+ * @tc.desc: Test NotifySupportExtendedScreen with isSupport false
+ * @tc.type: FUNC
+ * @tc.require: #I5Y4MZ
+ */
+static HWTEST_F(AVSessionServiceTestExt, NotifySupportExtendedScreen002, TestSize.Level1)
+{
+    CHECK_AND_RETURN(g_AVSessionService != nullptr);
+#ifdef CASTPLUS_CAST_ENGINE_ENABLE
+    OHOS::AppExecFwk::ElementName elementName;
+    elementName.SetBundleName("testBundle");
+    elementName.SetAbilityName("testAbility");
+    OHOS::sptr<AVSessionItem> session = g_AVSessionService->CreateSessionInner(
+        "testTag", AVSession::SESSION_TYPE_AUDIO, false, elementName);
+    CHECK_AND_RETURN(session != nullptr);
+    g_AVSessionService->NotifySupportExtendedScreen(false);
+    std::vector<CastDisplayInfo> castDisplays;
+    int32_t ret = session->GetAllCastDisplays(castDisplays);
+    EXPECT_EQ(ret, AVSESSION_SUCCESS);
+    EXPECT_EQ(castDisplays.size(), 0);
+    g_AVSessionService->HandleSessionRelease(session->GetSessionId());
+#endif
+}
 } // AVSession
 } // OHOS
