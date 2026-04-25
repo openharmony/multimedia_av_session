@@ -123,7 +123,6 @@ void MigrateAVSessionProxy::OnBytesReceived(const std::string &deviceId, const s
     CHECK_AND_RETURN_LOG(SoftbusSessionUtils::TransferStrToJson(jsonStr, jsonValue), "OnBytes err parse json");
 
     switch (infoType) {
-
         case SYNC_PROTOCOL_VERSION:
             ProcessProtocolVersion(jsonValue, deviceId);
             break;
