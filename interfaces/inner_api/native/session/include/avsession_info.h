@@ -532,7 +532,7 @@ public:
      * @param deviceInfo The device info.
      * @since 9
     */
-    virtual void OnCastStateChange(int32_t castState, DeviceInfo deviceInfo) = 0;
+    virtual void OnCastStateChange(int32_t castState, DeviceInfo deviceInfo, int32_t reasonCode) = 0;
 
     /**
      * @brief Listen to the change of cast event.
@@ -561,7 +561,7 @@ public:
      * @param isNeedRemove is need remove cast device
      * @since 13
     */
-    virtual void OnCastStateChange(int32_t castState, DeviceInfo deviceInfo, bool isNeedRemove) = 0;
+    virtual void OnCastStateChange(int32_t castState, DeviceInfo deviceInfo, bool isNeedRemove, int32_t reasonCode) = 0;
 
     /**
      * @brief Listen to the change of cast event.

@@ -441,7 +441,8 @@ void AVSessionItem::ReportSetAVMetaDataInfo(const AVMetaData& meta)
                                     + "duration: " + std::to_string(meta.GetDuration()) + ", "
                                     + "avQueueName: " + meta.GetAVQueueName() + ", "
                                     + "mediaImage: " + mediaImage + ", "
-                                    + "avqueueImage: " + avQueueImage;
+                                    + "avqueueImage: " + avQueueImage + ", "
+                                    + "filter: " + std::to_string(meta.GetFilter());
     HISYSEVENT_BEHAVIOR("SESSION_API_BEHAVIOR", "API_NAME", "SetAVMetaData",
         "BUNDLE_NAME", GetBundleName(), "SESSION_ID", AVSessionUtils::GetAnonySessionId(GetSessionId()),
         "SESSION_TAG", descriptor_.sessionTag_, "SESSION_TYPE", GetSessionType(), "API_PARAM", apiParamString,
@@ -885,6 +886,16 @@ int32_t AVSessionItem::EnableDesktopLyric(bool isEnabled)
     CHECK_AND_RETURN_RET_LOG(isSupportedDesktopLyric_.load(), ERR_DESKTOPLYRIC_NOT_SUPPORT,
         "The desktop lyrics feature is not supported.");
     SLOGI("enable desktop lyrics: isEnable=%{public}d", isEnabled);
+    HISYSEVENT_BEHAVIOR("SESSION_API_BEHAVIOR",
+        "API_NAME", "EnableDesktopLyric", "BUNDLE_NAME", GetBundleName(),
+        "SESSION_ID", AVSessionUtils::GetAnonySessionId(GetSessionId()),
+        "SESSION_TAG", descriptor_.sessionTag_, "SESSION_TYPE", GetSessionType(),
+        "API_PARAM", "isEnabled: " + std::to_string(isEnabled),
+        "APP_VERSION_NAME", BundleStatusAdapter::GetInstance().GetAppVersion(GetBundleName()),
+        "COST_TIME", 0,
+        "OS_VERSION", AVSessionSysEvent::GetInstance().GetOsVersion(),
+        "SDK_VERSION", AVSessionSysEvent::GetInstance().GetSdkVersion(),
+        "ERROR_CODE", AVSESSION_SUCCESS, "ERROR_MSG", "SUCCESS");
     isEnabledDesktopLyric_ = isEnabled;
     {
         std::lock_guard controllerLockGuard(controllersLock_);
@@ -1201,6 +1212,17 @@ void AVSessionItem::ReportAVCastControllerInfo()
         "ERROR_CODE", AVSESSION_SUCCESS, "ERROR_MSG", "SUCCESS");
 }
 
+void AVSessionItem::ReportOnPlayerError(int32_t errorCode, const std::string& errorMsg)
+{
+    HISYSEVENT_BEHAVIOR("SESSION_API_BEHAVIOR", "API_NAME", "OnPlayerError",
+        "BUNDLE_NAME", GetBundleName(), "SESSION_ID", AVSessionUtils::GetAnonySessionId(GetSessionId()),
+        "SESSION_TAG", descriptor_.sessionTag_, "SESSION_TYPE", GetSessionType(),
+        "API_PARAM", "default", "ERROR_CODE", errorCode, "ERROR_MSG", errorMsg,
+        "APP_VERSION_NAME", BundleStatusAdapter::GetInstance().GetAppVersion(GetBundleName()),
+        "COST_TIME", 0, "OS_VERSION", AVSessionSysEvent::GetInstance().GetOsVersion(),
+        "SDK_VERSION", AVSessionSysEvent::GetInstance().GetSdkVersion());
+}
+
 void AVSessionItem::dealValidCallback(int32_t cmd, std::vector<int32_t>& supportedCastCmds)
 {
     {
@@ -1253,7 +1275,10 @@ sptr<IRemoteObject> AVSessionItem::GetAVCastControllerInner()
                 GetDescriptor().outputDeviceInfo_.deviceInfos_[0]);
         }
     };
-    sharedPtr->Init(castControllerProxy, validCallback, preparecallback);
+    auto playerErrorCallback = [this](int32_t errorCode, const std::string& errorMsg) {
+        ReportOnPlayerError(errorCode, errorMsg);
+    };
+    sharedPtr->Init(castControllerProxy, validCallback, preparecallback, playerErrorCallback);
     {
         std::lock_guard lockGuard(castControllersLock_);
         castControllers_.emplace_back(sharedPtr);
@@ -1585,15 +1610,6 @@ int32_t AVSessionItem::UpdateVolume(bool up)
     return AVSESSION_SUCCESS;
 }
 
-std::string AVSessionItem::GetAnonymousDeviceId(std::string deviceId)
-{
-    if (deviceId.empty() || deviceId.length() < DEVICE_ID_MIN_LEN) {
-        return "unknown";
-    }
-    const uint32_t half = DEVICE_ID_MIN_LEN / 2;
-    return deviceId.substr(0, half) + "**" + deviceId.substr(deviceId.length() - half);
-}
-
 #ifdef CASTPLUS_CAST_ENGINE_ENABLE
 int32_t AVSessionItem::RegisterListenerStreamToCast(const std::pair<std::string, std::string>& serviceNameStatePair,
     DeviceInfo deviceInfo)
@@ -1631,14 +1647,6 @@ int32_t AVSessionItem::RegisterListenerStreamToCast(const std::pair<std::string,
     SLOGI("RegisterListenerStreamToCast check handle set to %{public}lld", (long long)castHandle_);
     UpdateCastDeviceMap(deviceInfo);
     DoContinuousTaskRegister();
-    HISYSEVENT_BEHAVIOR("SESSION_CAST_CONTROL",
-        "CONTROL_TYPE", "MirrorTostreamCast",
-        "PEER_DEVICE_ID", GetAnonymousDeviceId(deviceInfo.deviceId_),
-        "PEER_DEVICE_NAME", deviceInfo.deviceName_,
-        "PEER_DEVICE_TYPE", deviceInfo.deviceType_,
-        "PEER_NETWORK_ID", GetAnonymousDeviceId(deviceInfo.networkId_),
-        "PEER_SUPPORTED_PROTOCOL", deviceInfo.supportedProtocols_,
-        "BUNDLE_NAME", GetBundleName());
     return AVSESSION_SUCCESS;
 }
 
@@ -1883,6 +1891,8 @@ int32_t AVSessionItem::StartCast(const OutputDeviceInfo& outputDeviceInfo)
 
 int32_t AVSessionItem::SubStartCast(const OutputDeviceInfo& outputDeviceInfo)
 {
+    AVSessionSysEvent::GetInstance().updateStartCastTime(GetSessionId(), GetBundleName(),
+        BundleStatusAdapter::GetInstance().GetAppVersion(GetBundleName()), GetSessionType());
     int64_t castHandle = AVRouter::GetInstance().StartCast(outputDeviceInfo, castServiceNameStatePair_, GetSessionId());
     CHECK_AND_RETURN_RET_LOG(castHandle != AVSESSION_ERROR, AVSESSION_ERROR, "StartCast failed");
 
@@ -1941,6 +1951,7 @@ void AVSessionItem::DealDisconnect(DeviceInfo deviceInfo, bool isNeedRemove)
         serviceCallbackForCastNtf_(GetSessionId(), false, false);
     }
     ReportStopCastFinish("AVSessionItem::OnCastStateChange", deviceInfo);
+    AVSessionSysEvent::GetInstance().ReportSessionCastControl(streamCast_, GetSessionId(), deviceInfo);
 }
 
 void AVSessionItem::DealCollaborationPublishState(int32_t castState, DeviceInfo deviceInfo)
@@ -2001,7 +2012,8 @@ void AVSessionItem::DealLocalState(const int32_t castState, const OutputDeviceIn
             std::this_thread::sleep_for(std::chrono::milliseconds(SWITCH_WAIT_TIME));
             if (CastAddToCollaboration(newOutputDeviceInfo_) != AVSESSION_SUCCESS ||
                 SubStartCast(newOutputDeviceInfo_) != AVSESSION_SUCCESS) {
-                OnCastStateChange(disconnectStateFromCast_, newOutputDeviceInfo_.deviceInfos_[0], false);
+                OnCastStateChange(disconnectStateFromCast_,
+                    newOutputDeviceInfo_.deviceInfos_[0], false, noReasonCode_);
                 AVSessionUtils::PublishCommonEvent(MEDIA_CAST_ERROR);
             }
             break;
@@ -2041,7 +2053,7 @@ void AVSessionItem::PublishAVCastHa(int32_t castState, DeviceInfo deviceInfo)
     }
 }
 
-void AVSessionItem::OnCastStateChange(int32_t castState, DeviceInfo deviceInfo, bool isNeedRemove)
+void AVSessionItem::OnCastStateChange(int32_t castState, DeviceInfo deviceInfo, bool isNeedRemove, int32_t reasonCode)
 {
     SLOGI("OnCastStateChange in with BundleName: %{public}s | state: %{public}d | id: %{public}s",
         GetBundleName().c_str(), static_cast<int32_t>(castState),
@@ -2088,9 +2100,25 @@ void AVSessionItem::OnCastStateChange(int32_t castState, DeviceInfo deviceInfo, 
             multiDeviceState_ != MultiDeviceState::CASTING_SWITCH_DEVICE) {
             serviceCallbackForPhotoCast_(GetSessionId(), false);
         }
-        DealDisconnect(deviceInfo, isNeedRemove);
+        DealDisconnect(outputDeviceInfo.deviceInfos_[0], isNeedRemove);
     }
     DealOutputDeviceChange(castState, outputDeviceInfo);
+    ResetCastControlInfo(castState, reasonCode, outputDeviceInfo);
+}
+
+void AVSessionItem::ResetCastControlInfo(int32_t castState, int32_t reasonCode,
+    const OutputDeviceInfo& outputDeviceInfo)
+{
+    if (castState == authingStateFromCast_ && reasonCode == reasonShowTrustSelectUI_) {
+        SLOGI("OnCastStateChange: authing state with show pin, reset isNeedRecord_");
+        AVSessionSysEvent::GetInstance().clearCastControlInfo(GetSessionId());
+    }
+    if (castState == mirrorToStream_) {
+        AVSessionSysEvent::GetInstance().updateStartCastTime(GetSessionId(), GetBundleName(),
+            BundleStatusAdapter::GetInstance().GetAppVersion(GetBundleName()), GetSessionType());
+        AVSessionSysEvent::GetInstance().ReportSessionCastControl(mirrorToStreamCast_,
+            GetSessionId(), outputDeviceInfo.deviceInfos_[0]);
+    }
 
     if (castState == ConnectionState::STATE_DISCONNECTED && descriptor_.sessionTag_ == "RemoteCast") {
         SLOGI("Sink cast session is disconnected, avsession item need be destroyed.");
@@ -2350,15 +2378,31 @@ bool AVSessionItem::SearchSpidInCapability(const std::string& deviceId)
     return false;
 }
 
+void AVSessionItem::SubSetExtrasInner()
+{
+    HISYSEVENT_BEHAVIOR("SESSION_API_BEHAVIOR",
+        "API_NAME", "SetExtras", "BUNDLE_NAME", GetBundleName(),
+        "SESSION_ID", AVSessionUtils::GetAnonySessionId(GetSessionId()),
+        "SESSION_TAG", descriptor_.sessionTag_, "SESSION_TYPE", GetSessionType(),
+        "API_PARAM", "requireAbilityList: url-cast",
+        "APP_VERSION_NAME", BundleStatusAdapter::GetInstance().GetAppVersion(GetBundleName()),
+        "COST_TIME", 0,
+        "OS_VERSION", AVSessionSysEvent::GetInstance().GetOsVersion(),
+        "SDK_VERSION", AVSessionSysEvent::GetInstance().GetSdkVersion(),
+        "ERROR_CODE", AVSESSION_SUCCESS, "ERROR_MSG", "SUCCESS");
+    if (descriptor_.sessionType_ == AVSession::SESSION_TYPE_VIDEO && serviceCallbackForStream_) {
+        SLOGI("AVSessionItem send mirrortostream event to service");
+        serviceCallbackForStream_(GetSessionId());
+    }
+}
+
 void AVSessionItem::SetExtrasInner(AAFwk::IArray* list)
 {
     auto func = [this](AAFwk::IInterface* object) {
         if (object != nullptr) {
             AAFwk::IString* stringValue = AAFwk::IString::Query(object);
-            if (stringValue != nullptr && AAFwk::String::Unbox(stringValue) == "url-cast" &&
-                descriptor_.sessionType_ == AVSession::SESSION_TYPE_VIDEO && serviceCallbackForStream_) {
-                SLOGI("AVSessionItem send mirrortostream event to service");
-                serviceCallbackForStream_(GetSessionId());
+            if (stringValue != nullptr && AAFwk::String::Unbox(stringValue) == "url-cast") {
+                SubSetExtrasInner();
             }
         }
     };
@@ -2676,6 +2720,9 @@ void AVSessionItem::HandleMediaKeyEvent(const MMI::KeyEvent& keyEvent, const Com
         }
         PublishMediaKeyEvent(keyEvent.GetKeyCode());
     }
+#ifdef ENABLE_AVSESSION_SYSEVENT_CONTROL
+    ReportSessionControl(descriptor_.elementName_.GetBundleName(), AVControlCommand::SESSION_CMD_PLAY);
+#endif
 }
 
 void AVSessionItem::ExecuteControllerCommand(const AVControlCommand& cmd)
@@ -3254,6 +3301,7 @@ void AVSessionItem::ReportConnectFinish(const std::string func, const DeviceInfo
     } else {
         AVSessionRadar::GetInstance().ConnectFinish(deviceInfo, info);
     }
+    AVSessionSysEvent::GetInstance().updateDeviceConnectTime(GetSessionId());
 #endif
 }
 
@@ -3435,8 +3483,10 @@ void AVSessionItem::ReportSessionControl(const std::string& bundleName, int32_t 
     if (cmd == AVControlCommand::SESSION_CMD_PLAY ||
         cmd == AVControlCommand::SESSION_CMD_PAUSE ||
         cmd == CONTROL_COLD_START) {
+        auto uid = GetCallingUid();
+        auto callerBundleName = BundleStatusAdapter::GetInstance().GetBundleNameFromUid(uid);
         AVSessionSysEvent::GetInstance().UpdateControl(bundleName, cmd,
-            BundleStatusAdapter::GetInstance().GetBundleNameFromUid(GetCallingUid()));
+            callerBundleName.empty() ? std::to_string(uid) : callerBundleName);
     }
 }
 #endif

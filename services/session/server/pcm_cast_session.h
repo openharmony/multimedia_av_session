@@ -23,7 +23,7 @@
 namespace OHOS::AVSession {
 class PcmCastSession : public IAVRouterListener, public std::enable_shared_from_this<PcmCastSession> {
 public:
-    void OnCastStateChange(int32_t castState, DeviceInfo deviceInfo, bool isNeedRemove) override;
+    void OnCastStateChange(int32_t castState, DeviceInfo deviceInfo, bool isNeedRemove, int32_t reasonCode) override;
 
     void OnCastEventRecv(int32_t errorCode, std::string& errorMsg) override;
 
@@ -115,6 +115,10 @@ private:
     int32_t SendStateChangeRequest(const SessionToken& sessionToken);
     void CastStateCommandParams(const AAFwk::WantParams& commandArgs);
     void DealCollaborationPublishState(int32_t castState, DeviceInfo deviceInfo);
+    void ReportSessionCast(int32_t castState, int32_t reasonCode);
+    const std::string PCM_CAST_SESSION = "PCMCast";
+    int32_t noReasonCode_ = 0;
+    int32_t reasonDeviceIsUntrusted_ = 10014;
 };
 } // namespace OHOS::AVSession
 #endif // OHOS_PCM_CAST_SESSION_H

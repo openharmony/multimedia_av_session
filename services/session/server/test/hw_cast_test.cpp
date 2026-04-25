@@ -29,7 +29,7 @@ class IAVCastSessionStateListenerTest : public IAVCastSessionStateListener {
 public:
     IAVCastSessionStateListenerTest() = default;
     virtual ~IAVCastSessionStateListenerTest() = default;
-    void OnCastStateChange(int32_t castState, DeviceInfo deviceInfo) override {};
+    void OnCastStateChange(int32_t castState, DeviceInfo deviceInfo, int32_t reasonCode) override {};
     void OnCastEventRecv(int32_t errorCode, std::string& errorMsg) override {};
 };
 
