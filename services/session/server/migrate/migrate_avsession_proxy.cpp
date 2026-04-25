@@ -787,7 +787,6 @@ void MigrateAVSessionProxy::ProcessProtocolVersion(cJSON* jsonValue, const std::
         }
         deviceVersionMap_[deviceId] = newVersion;
     }
-    SLOGI("Record phone:%{public}s version:%{public}d", SoftbusSessionUtils::AnonymizeDeviceId(deviceId_).c_str(), newVersion);
 
     if (versionChanged && preSetController_ != nullptr) {
         AAFwk::WantParams args;
