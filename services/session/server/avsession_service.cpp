@@ -316,6 +316,11 @@ void EventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &eventData)
     } else if (action.compare("usual.event.MEDIA_NTF_SWITCH") == 0) {
         bool isMediaNtfEnable = want.GetBoolParam("isMediaNtfEnable", true);
         servicePtr_->UpdateNtfEnable(isMediaNtfEnable);
+    } else if (action.compare("HybridModeSwitchEvent") == 0) {
+        int32_t targetMode = want.GetIntParam("targetMode", 0);
+        // pcMode=1, phoneMode=0
+        SLOGI("on receiveEvent HybridModeSwitchEvent %{public}d", targetMode);
+        servicePtr_->SetPcMode(targetMode == 1);
     }
 }
 
@@ -456,6 +461,7 @@ bool AVSessionService::SubscribeCommonEvent()
         "usual.event.CAST_SESSION_CREATE",
         "usual.event.DESKTOP_LYRIC_DESTROY",
         "usual.event.MEDIA_NTF_SWITCH",
+        "HybridModeSwitchEvent",
     };
 
     EventFwk::MatchingSkills matchingSkills;
@@ -1568,6 +1574,10 @@ void AVSessionService::AddCastServiceCallback(sptr<AVSessionItem>& sessionItem)
             SLOGI("CancelNotification PHOTO with userId:%{public}d, ret=%{public}d",
                 session->GetDescriptor().userId_, ret);
         }
+    });
+
+    sessionItem->SetServiceCallbackForPcMode([this]() {
+        return isPcMode_.load();
     });
 #endif // CASTPLUS_CAST_ENGINE_ENABLE
 }
@@ -4372,6 +4382,43 @@ std::shared_ptr<AbilityRuntime::WantAgent::WantAgent> AVSessionService::CreateWa
     return isCustomer ? launWantAgent : AbilityRuntime::WantAgent::WantAgentHelper::GetWantAgent(wantAgentInfo, uid);
 }
 
+void AVSessionService::SetPcMode(bool isPcMode)
+{
+    isPcMode_.store(isPcMode);
+    isPcMode ? HandlePcModeRemoveNotification() : HandlePcModeAddNotification();
+}
+
+void AVSessionService::HandlePcModeRemoveNotification()
+{
+    std::lock_guard lockGuard(sessionServiceLock_);
+    CHECK_AND_RETURN_LOG(topSession_ != nullptr, "topSession_ is nullptr");
+    
+    int32_t userId = topSession_->GetUserId();
+    if (GetUsersManager().GetTopSession(userId).GetRefPtr() == topSession_.GetRefPtr()) {
+        hasMediaCapsule_ = false;
+        int32_t ret = Notification::NotificationHelper::CancelNotification(
+            std::to_string(userId), mediacontrollerNotifyId);
+        SLOGI("HandlePcModeRemoveNotification CancelNotification userId:%{public}d, ret=%{public}d", userId, ret);
+    }
+}
+
+void AVSessionService::HandlePcModeAddNotification()
+{
+    std::lock_guard lockGuard(sessionServiceLock_);
+    CHECK_AND_RETURN_LOG(topSession_ != nullptr, "topSession_ is nullptr");
+    
+    bool isPlaying = false;
+    if (topSession_->IsCastConnected()) {
+        isPlaying = topSession_->GetCastAVPlaybackState().GetState() == AVPlaybackState::PLAYBACK_STATE_PLAY;
+    } else {
+        isPlaying = IsLocalSessionPlaying(topSession_);
+    }
+    
+    if (isPlaying) {
+        NotifySystemUI(nullptr, IsCapsuleNeeded(), false);
+    }
+}
+
 bool AVSessionService::IsCapsuleNeeded()
 {
     CHECK_AND_RETURN_RET_LOG(topSession_ != nullptr, false, "audio broker capsule");
@@ -4613,12 +4660,13 @@ void AVSessionService::NotifySystemUI(sptr<AVSessionItem> photoSession, bool add
 #ifdef DEVICE_MANAGER_ENABLE
     bool is2in1 = (GetLocalDeviceType() == DistributedHardware::DmDeviceType::DEVICE_TYPE_2IN1);
 #endif
-    bool ispcmode = system::GetParameter("const.window.support_window_pcmode_switch", "false") == "true" &&
-     (system::GetParameter("persist.sceneboard.ispcmode", "false") == "true");
+    bool isPcMode = system::GetParameter("const.window.support_window_pcmode_switch", "false") == "true" &&
+        system::GetParameter("persist.sceneboard.ispcmode", "false") == "true";
 #ifdef DEVICE_MANAGER_ENABLE
-    CHECK_AND_RETURN_LOG(!is2in1 && !ispcmode, "2in1 not support.");
+    CHECK_AND_RETURN_LOG(!is2in1 && !isPcMode, "2in1 not support.");
 #else
-    CHECK_AND_RETURN_LOG(!isCastableDevice_ && !ispcmode, "2in1 not support.");
+    isPcMode = isPcMode_.load();
+    CHECK_AND_RETURN_LOG(!isCastableDevice_ && !isPcMode, "pc device not support.");
 #endif
     CHECK_AND_RETURN_LOG(isNtfEnabled_.load(), "ntf settings off");
     int32_t result = Notification::NotificationHelper::SubscribeLocalLiveViewNotification(NOTIFICATION_SUBSCRIBER);
