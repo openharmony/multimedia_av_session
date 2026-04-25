@@ -350,6 +350,8 @@ public:
     int32_t UploadDesktopLyricOperationInfo(const std::string &sessionId,
         const std::string &handler, uint32_t sceneCode) override;
 
+    void UpdateNtfEnable(bool isMediaNtfEnable);
+
     static AVSessionUsersManager& GetUsersManager();
 
 private:
@@ -708,6 +710,7 @@ private:
     std::atomic<bool> hasRemoveEvent_ = false;
     std::atomic<bool> hasMediaCapsule_ = false;
     std::atomic<bool> hasCardStateChangeStopTask_ = false;
+    std::atomic<bool> isNtfEnabled_ = true;
 
     sptr<AVSessionItem> topSession_;
     sptr<AVSessionItem> ancoSession_;
