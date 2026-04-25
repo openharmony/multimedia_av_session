@@ -337,6 +337,8 @@ public:
 
     void NotifyRemoteBundleChange(const std::string bundleName);
 
+    void PublishMediaControlState(int32_t mediaPlayState);
+
     bool CheckIfOtherAudioPlaying();
 
     int32_t StartDesktopLyricAbility(const std::string &sessionId, const std::string &handler) override;

@@ -1100,4 +1100,9 @@ int32_t AVSessionService::ProcessSuperLauncherDisconnect(std::string deviceId, s
     }
     return AVSESSION_SUCCESS;
 }
+
+void AVSessionService::PublishMediaControlState(int32_t mediaPlayState)
+{
+    PublishEvent(mediaPlayState);
+}
 }
