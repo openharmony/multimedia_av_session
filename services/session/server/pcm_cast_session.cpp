@@ -18,6 +18,7 @@
 #include "avsession_log.h"
 #include "avsession_utils.h"
 #include "av_router.h"
+#include "avsession_sysevent.h"
 #include "cast_engine_common.h"
 #include "collaboration_manager_hiplay.h"
 #include "ipc_skeleton.h"
@@ -29,10 +30,10 @@
 
 namespace OHOS::AVSession {
 
-void PcmCastSession::OnCastStateChange(int32_t castState, DeviceInfo deviceInfo, bool isNeedRemove)
+void PcmCastSession::OnCastStateChange(int32_t castState, DeviceInfo deviceInfo, bool isNeedRemove, int32_t reasonCode)
 {
-    SLOGI("PcmCastSession OnCastStateChange state %{public}d id %{public}s", castState,
-        AVSessionUtils::GetAnonymousDeviceId(deviceInfo.deviceId_).c_str());
+    SLOGI("PcmCastSession OnCastStateChange state %{public}d id %{public}s reasonCode %{public}d", castState,
+        AVSessionUtils::GetAnonymousDeviceId(deviceInfo.deviceId_).c_str(), reasonCode);
 
     if (castState == static_cast<int32_t>(CastEngine::DeviceState::DISCONNECTED)) {
         AVRouter::GetInstance().UnRegisterCallback(castHandle_, shared_from_this(), "pcmCastSession");
@@ -49,7 +50,7 @@ void PcmCastSession::OnCastStateChange(int32_t castState, DeviceInfo deviceInfo,
                 newOutputDeviceInfo_.deviceInfos_[0]) != AVSESSION_SUCCESS) ||
                 SubStartCast(newOutputDeviceInfo_, newServiceNameStatePair_, newSessionToken_) != AVSESSION_SUCCESS) {
                 OnCastStateChange(static_cast<int32_t>(CastEngine::DeviceState::DISCONNECTED),
-                    newOutputDeviceInfo_.deviceInfos_[0], false);
+                    newOutputDeviceInfo_.deviceInfos_[0], false, noReasonCode_);
                 AVSessionUtils::PublishCommonEvent(MEDIA_CAST_ERROR);
             }
         }
@@ -72,9 +73,29 @@ void PcmCastSession::OnCastStateChange(int32_t castState, DeviceInfo deviceInfo,
         DealCollaborationPublishState(castState, deviceInfo);
     }
 
+    ReportSessionCast(castState, reasonCode);
+
     CollaborationManagerHiPlay::GetInstance().SendCollaborationOnStop([this](void) {
         StopCast();
     });
+}
+
+void PcmCastSession::ReportSessionCast(int32_t castState, int32_t reasonCode)
+{
+#ifdef ENABLE_AVSESSION_SYSEVENT_CONTROL
+    if (castState == static_cast<int32_t>(CastEngine::DeviceState::AUTHING) &&
+        reasonCode == reasonDeviceIsUntrusted_) {
+        SLOGI("OnCastStateChange: authing state with show pin, reset");
+        AVSessionSysEvent::GetInstance().clearCastControlInfo(PCM_CAST_SESSION);
+    }
+    if (castState == static_cast<int32_t>(CastEngine::DeviceState::STREAM)) {
+        AVSessionSysEvent::GetInstance().updateDeviceConnectTime(PCM_CAST_SESSION);
+    }
+    if (castState == static_cast<int32_t>(CastEngine::DeviceState::DISCONNECTED) &&
+        !tempDeviceInfo_.deviceId_.empty()) {
+        AVSessionSysEvent::GetInstance().ReportSessionCastControl(PCM_CAST_SESSION, PCM_CAST_SESSION, tempDeviceInfo_);
+    }
+#endif
 }
 
 void PcmCastSession::DealCollaborationPublishState(int32_t castState, DeviceInfo deviceInfo)
@@ -182,6 +203,8 @@ int32_t PcmCastSession::StartCast(const OutputDeviceInfo& outputDeviceInfo,
 int32_t PcmCastSession::SubStartCast(const OutputDeviceInfo& outputDeviceInfo,
     std::pair<std::string, std::string>& serviceNameStatePair, const SessionToken& sessionToken)
 {
+    AVSessionSysEvent::GetInstance().updateStartCastTime(PCM_CAST_SESSION,
+        PCM_CAST_SESSION, PCM_CAST_SESSION, PCM_CAST_SESSION);
     castHandle_ = AVRouter::GetInstance().StartCast(outputDeviceInfo, serviceNameStatePair, "pcmCastSession");
     CHECK_AND_RETURN_RET_LOG(castHandle_ != AVSESSION_ERROR, AVSESSION_ERROR, "StartCast failed");
     AVRouter::GetInstance().RegisterCallback(castHandle_, shared_from_this(),

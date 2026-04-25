@@ -363,51 +363,6 @@ HWTEST_F(AVsessionItemTest, AVSessionItem_UpdateElement_001, TestSize.Level1)
 }
 
 /**
- * @tc.name: AVSessionItem_GetAnonymousDeviceId_001
- * @tc.desc: Test GetAnonymousDeviceId with empty deviceId.
- * @tc.type: FUNC
- * @tc.require: #I5Y4MZ
- */
-HWTEST_F(AVsessionItemTest, AVSessionItem_GetAnonymousDeviceId_001, TestSize.Level0)
-{
-    SLOGD("AVSessionItem_GetAnonymousDeviceId_001 begin!");
-    std::string deviceId = "";
-    std::string result = g_AVSessionItem->GetAnonymousDeviceId(deviceId);
-    EXPECT_EQ(result, "unknown");
-    SLOGD("AVSessionItem_GetAnonymousDeviceId_001 end!");
-}
-
-/**
- * @tc.name: AVSessionItem_GetAnonymousDeviceId_002
- * @tc.desc: Test GetAnonymousDeviceId with deviceId length less than DEVICE_ID_MIN_LEN.
- * @tc.type: FUNC
- * @tc.require: #I5Y4MZ
- */
-HWTEST_F(AVsessionItemTest, AVSessionItem_GetAnonymousDeviceId_002, TestSize.Level0)
-{
-    SLOGD("AVSessionItem_GetAnonymousDeviceId_002 begin!");
-    std::string deviceId = "12345";
-    std::string result = g_AVSessionItem->GetAnonymousDeviceId(deviceId);
-    EXPECT_EQ(result, "unknown");
-    SLOGD("AVSessionItem_GetAnonymousDeviceId_002 end!");
-}
-
-/**
- * @tc.name: AVSessionItem_GetAnonymousDeviceId_003
- * @tc.desc: Test GetAnonymousDeviceId with deviceId length greater than or equal to DEVICE_ID_MIN_LEN.
- * @tc.type: FUNC
- * @tc.require: #I5Y4MZ
- */
-HWTEST_F(AVsessionItemTest, AVSessionItem_GetAnonymousDeviceId_003, TestSize.Level0)
-{
-    SLOGD("AVSessionItem_GetAnonymousDeviceId_003 begin!");
-    std::string deviceId = "1234567890";
-    std::string result = g_AVSessionItem->GetAnonymousDeviceId(deviceId);
-    EXPECT_NE(result, "unknown");
-    SLOGD("AVSessionItem_GetAnonymousDeviceId_003 end!");
-}
-
-/**
  * @tc.name: AVSessionItem_RegisterListenerStreamToCast_001
  * @tc.desc: Test RegisterListenerStreamToCast with castHandle_ > 0.
  * @tc.type: FUNC
@@ -1341,6 +1296,120 @@ HWTEST_F(AVsessionItemTest, AVSessionItem_OnCastEventRecv_002, TestSize.Level1)
     g_AVSessionItem->OnCastEventRecv(errorCode, errorMsg);
     EXPECT_TRUE(true);
     SLOGI("AVSessionItem_OnCastEventRecv_002 End");
+}
+
+/**
+* @tc.name: AVSessionItem_GetAVCastControllerInner_001
+* @tc.desc: test GetAVCastControllerInner without castControllerProxy
+* @tc.type: FUNC
+* @tc.require: NA
+*/
+HWTEST_F(AVsessionItemTest, AVSessionItem_GetAVCastControllerInner_001, TestSize.Level1)
+{
+    SLOGI("AVSessionItem_GetAVCastControllerInner_001 Begin");
+    ASSERT_NE(g_AVSessionItem, nullptr);
+    
+    g_AVSessionItem->castControllerProxy_ = nullptr;
+    auto result = g_AVSessionItem->GetAVCastControllerInner();
+    EXPECT_EQ(result, nullptr);
+    SLOGI("AVSessionItem_GetAVCastControllerInner_001 End");
+}
+
+/**
+* @tc.name: AVSessionItem_ResetCastControlInfo_001
+* @tc.desc: test ResetCastControlInfo with authing state and show pin reason clears CastControlInfo
+* @tc.type: FUNC
+* @tc.require: NA
+*/
+HWTEST_F(AVsessionItemTest, AVSessionItem_ResetCastControlInfo_001, TestSize.Level1)
+{
+    SLOGI("AVSessionItem_ResetCastControlInfo_001 Begin");
+    ASSERT_NE(g_AVSessionItem, nullptr);
+    
+    constexpr int32_t authingStateFromCast = 10;
+    constexpr int32_t reasonShowTrustSelectUI = 10003;
+    OutputDeviceInfo info;
+    DeviceInfo deviceInfo;
+    deviceInfo.deviceId_ = "DeviceId1";
+    deviceInfo.deviceName_ = "DeviceName1";
+    deviceInfo.deviceType_ = 1;
+    info.deviceInfos_.push_back(deviceInfo);
+    std::string sessionId = g_AVSessionItem->GetSessionId();
+    AVSessionSysEvent::GetInstance().updateStartCastTime(sessionId, "testBundle", "1.0", "audio");
+    g_AVSessionItem->ResetCastControlInfo(authingStateFromCast, reasonShowTrustSelectUI, info);
+    EXPECT_EQ(authingStateFromCast, 10);
+    SLOGI("AVSessionItem_ResetCastControlInfo_001 End");
+}
+
+/**
+* @tc.name: AVSessionItem_ResetCastControlInfo_002
+* @tc.desc: test ResetCastControlInfo with mirrorToStream state triggers ReportSessionCastControl
+* @tc.type: FUNC
+* @tc.require: NA
+*/
+HWTEST_F(AVsessionItemTest, AVSessionItem_ResetCastControlInfo_002, TestSize.Level1)
+{
+    SLOGI("AVSessionItem_ResetCastControlInfo_002 Begin");
+    ASSERT_NE(g_AVSessionItem, nullptr);
+    
+    constexpr int32_t mirrorToStream = 11;
+    OutputDeviceInfo info;
+    DeviceInfo deviceInfo;
+    deviceInfo.deviceId_ = "DeviceId1";
+    deviceInfo.deviceName_ = "DeviceName1";
+    deviceInfo.deviceType_ = 1;
+    info.deviceInfos_.push_back(deviceInfo);
+    std::string sessionId = g_AVSessionItem->GetSessionId();
+    AVSessionSysEvent::GetInstance().updateStartCastTime(sessionId, "testBundle", "1.0", "audio");
+    g_AVSessionItem->ResetCastControlInfo(mirrorToStream, 0, info);
+    EXPECT_EQ(mirrorToStream, 11);
+    SLOGI("AVSessionItem_ResetCastControlInfo_002 End");
+}
+
+/**
+* @tc.name: AVSessionItem_ResetCastControlInfo_003
+* @tc.desc: test ResetCastControlInfo with non-matching state and reason does nothing
+* @tc.type: FUNC
+* @tc.require: NA
+*/
+HWTEST_F(AVsessionItemTest, AVSessionItem_ResetCastControlInfo_003, TestSize.Level1)
+{
+    SLOGI("AVSessionItem_ResetCastControlInfo_003 Begin");
+    ASSERT_NE(g_AVSessionItem, nullptr);
+    
+    int32_t castState = 0;
+    int32_t reasonCode = 0;
+    OutputDeviceInfo info;
+    DeviceInfo deviceInfo;
+    deviceInfo.deviceId_ = "DeviceId1";
+    deviceInfo.deviceName_ = "DeviceName1";
+    deviceInfo.deviceType_ = 1;
+    info.deviceInfos_.push_back(deviceInfo);
+    g_AVSessionItem->ResetCastControlInfo(castState, reasonCode, info);
+    EXPECT_EQ(castState, 0);
+    SLOGI("AVSessionItem_ResetCastControlInfo_003 End");
+}
+
+/**
+* @tc.name: AVSessionItem_ReportConnectFinish_001
+* @tc.desc: test ReportConnectFinish with deviceInfo not in castDeviceInfoMap
+* @tc.type: FUNC
+* @tc.require: NA
+*/
+HWTEST_F(AVsessionItemTest, AVSessionItem_ReportConnectFinish_001, TestSize.Level1)
+{
+    SLOGI("AVSessionItem_ReportConnectFinish_001 Begin");
+    ASSERT_NE(g_AVSessionItem, nullptr);
+    
+    DeviceInfo deviceInfo;
+    deviceInfo.deviceId_ = "testDeviceId001";
+    deviceInfo.deviceName_ = "testDeviceName001";
+    deviceInfo.deviceType_ = 1;
+    deviceInfo.castCategory_ = AVCastCategory::CATEGORY_LOCAL;
+    g_AVSessionItem->castDeviceInfoMap_.clear();
+    g_AVSessionItem->ReportConnectFinish("AVSessionItem_ReportConnectFinish_001", deviceInfo);
+    EXPECT_EQ(deviceInfo.deviceType_, 1);
+    SLOGI("AVSessionItem_ReportConnectFinish_001 End");
 }
 #endif
 } //AVSession

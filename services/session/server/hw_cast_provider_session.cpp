@@ -15,7 +15,6 @@
 
 #include "hw_cast_provider_session.h"
 #include <thread>
-#include <chrono>
 #include "avsession_radar.h"
 #include "avsession_utils.h"
 #include "avsession_log.h"
@@ -168,7 +167,7 @@ bool HwCastProviderSession::SetStreamState(DeviceInfo deviceInfo)
     for (auto listener : castSessionStateListenerList_) {
         if (listener != nullptr) {
             SLOGI("trigger the OnCastStateChange for registered listeners");
-            listener->OnCastStateChange(deviceStateConnection, deviceInfo);
+            listener->OnCastStateChange(deviceStateConnection, deviceInfo, noReasonCode);
         }
     }
     stashDeviceState_ = deviceStateConnection;
@@ -201,7 +200,7 @@ bool HwCastProviderSession::RegisterCastSessionStateListener(std::shared_ptr<IAV
         deviceInfo.castCategory_ = AVCastCategory::CATEGORY_LOCAL;
         if (listener != nullptr) {
             SLOGI("retry trigger the OnCastStateChange for registered listeners");
-            listener->OnCastStateChange(static_cast<int>(stashDeviceState_), deviceInfo);
+            listener->OnCastStateChange(static_cast<int>(stashDeviceState_), deviceInfo, noReasonCode);
         }
     }
     return true;
@@ -239,7 +238,6 @@ void HwCastProviderSession::OnDeviceState(const CastEngine::DeviceStateInfo &sta
     
     CastRemoteDevice castRemoteDevice;
     castSession_ ? castSession_->GetRemoteDeviceInfo(stateInfo.deviceId, castRemoteDevice) : static_cast<int32_t>(0);
-    ReportDeviceCastingTime(deviceState, stateInfo.deviceId, castRemoteDevice);
 
     ComputeToastOnDeviceState(stateInfo, castRemoteDevice);
     {
@@ -275,7 +273,8 @@ void HwCastProviderSession::OnDeviceState(const CastEngine::DeviceStateInfo &sta
         deviceInfo.supportedProtocols_ = GetProtocolType(castRemoteDevice.protocolCapabilities);
         if (listener != nullptr) {
             SLOGI("trigger the OnCastStateChange for ListSize %{public}d", static_cast<int>(tempListenerList.size()));
-            listener->OnCastStateChange(static_cast<int>(deviceState), deviceInfo);
+            listener->OnCastStateChange(static_cast<int>(deviceState), deviceInfo,
+                static_cast<int32_t>(stateInfo.reasonCode));
             OnDeviceStateChange(stateInfo);
         }
     }
@@ -370,38 +369,6 @@ void HwCastProviderSession::OnHiplayEventRecv(const int32_t eventId, const std::
             break;
         default:
             break;
-    }
-}
-
-void HwCastProviderSession::ReportDeviceCastingTime(int32_t deviceState, const std::string &deviceId,
-    const CastEngine::CastRemoteDevice &castRemoteDevice)
-{
-    if (deviceState == static_cast<int>(CastEngine::DeviceState::STREAM)) {
-        int64_t currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count();
-        deviceConnectMap_[deviceId] = currentTime;
-    }
-
-    if (deviceState == static_cast<int>(CastEngine::DeviceState::DISCONNECTED)) {
-        auto it = deviceConnectMap_.find(deviceId);
-        if (it != deviceConnectMap_.end()) {
-            int64_t connectTime = it->second;
-            int64_t currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch()).count();
-            int64_t castingTime = currentTime - connectTime;
-            std::string ipAddress = castRemoteDevice.ipAddress;
-            uint32_t castProtocolType = castRemoteDevice.protocolCapabilities;
-            int32_t protocolType = (castProtocolType & ProtocolType::TYPE_CAST_PLUS_STREAM) |
-                (castProtocolType & ProtocolType::TYPE_DLNA) |
-                ((castProtocolType & static_cast<int>(CastEngine::ProtocolType::CAST_PLUS_AUDIO)) ?
-                    ProtocolType::TYPE_CAST_PLUS_AUDIO : 0);
-            HISYSEVENT_BEHAVIOR("DEVICE_CASTING_TIME",
-                "DEVICE_TYPE", static_cast<int>(castRemoteDevice.deviceType),
-                "IS_P2P", ipAddress.empty() ? false : true,
-                "PROTOCOL", protocolType,
-                "SERVICE_DURATION", castingTime);
-            deviceConnectMap_.erase(it);
-        }
     }
 }
 
