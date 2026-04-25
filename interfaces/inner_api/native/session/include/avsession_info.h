@@ -466,6 +466,30 @@ public:
     virtual void OnExtrasChange(const AAFwk::WantParams& extras) = 0;
 
     /**
+     * @brief Listen for media center control type change events.
+     *
+     * @param controlTypes Changed control types.
+     * @since 20
+     */
+    virtual void OnMediaCenterControlTypeChanged(const std::vector<int32_t>& controlTypes) {};
+
+    /**
+     * @brief Listen for supported playback speeds change events.
+     *
+     * @param speeds Changed supported playback speeds.
+     * @since 20
+     */
+    virtual void OnSupportedPlaySpeedsChanged(const std::vector<double>& speeds) {};
+
+    /**
+     * @brief Listen for supported loop modes change events.
+     *
+     * @param loopModes The changed supported loop modes.
+     * @since 20
+     */
+    virtual void OnSupportedLoopModesChanged(const std::vector<int32_t>& loopModes) {};
+
+    /**
      * @brief Session custom media packet for 4k change callback.
      *
      * @param data The changed custom media packet.
