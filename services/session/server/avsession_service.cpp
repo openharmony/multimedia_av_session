@@ -313,6 +313,9 @@ void EventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &eventData)
 #endif
     } else if (action.compare("usual.event.DESKTOP_LYRIC_DESTROY") == 0) {
         servicePtr_->StopDesktopLyricAbility();
+    } else if (action.compare("usual.event.MEDIA_NTF_SWITCH") == 0) {
+        bool isMediaNtfEnable = want.GetBoolParam("isMediaNtfEnable", true);
+        servicePtr_->UpdateNtfEnable(isMediaNtfEnable);
     }
 }
 
@@ -452,6 +455,7 @@ bool AVSessionService::SubscribeCommonEvent()
         "usual.event.PACKAGE_REMOVED",
         "usual.event.CAST_SESSION_CREATE",
         "usual.event.DESKTOP_LYRIC_DESTROY",
+        "usual.event.MEDIA_NTF_SWITCH",
     };
 
     EventFwk::MatchingSkills matchingSkills;
@@ -4616,6 +4620,7 @@ void AVSessionService::NotifySystemUI(sptr<AVSessionItem> photoSession, bool add
 #else
     CHECK_AND_RETURN_LOG(!isCastableDevice_ && !ispcmode, "2in1 not support.");
 #endif
+    CHECK_AND_RETURN_LOG(isNtfEnabled_.load(), "ntf settings off");
     int32_t result = Notification::NotificationHelper::SubscribeLocalLiveViewNotification(NOTIFICATION_SUBSCRIBER);
     CHECK_AND_RETURN_LOG(result == ERR_OK, "create notification subscriber error %{public}d", result);
     SLOGI("NotifySystemUI photoSession %{public}d addCapsule %{public}d isCapsuleUpdate %{public}d",
@@ -4818,6 +4823,16 @@ int32_t AVSessionService::UploadDesktopLyricOperationInfo(const std::string &ses
 
     return ExtensionConnectHelper::GetInstance().UploadDesktopLyricOperationInfo(sessionId, handler, sceneCode,
         userId);
+}
+
+void AVSessionService::UpdateNtfEnable(bool isMediaNtfEnable) {
+    SLOGI("UpdateNtfEnable %{public}d", isMediaNtfEnable);
+    isNtfEnabled_.store(isMediaNtfEnable);
+    if (!isMediaNtfEnable) {
+        int32_t userId = GetUsersManager().GetCurrentUserId();
+        Notification::NotificationHelper::CancelNotification(std::to_string(userId),  mediacontrollerNotifyId);
+        Notification::NotificationHelper::CancelNotification(std::to_string(userId),  photoNotifyId);
+    }
 }
 
 #ifdef ENABLE_AVSESSION_SYSEVENT_CONTROL
