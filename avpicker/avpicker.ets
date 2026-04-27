@@ -311,6 +311,7 @@ export struct AVCastPicker {
   @State roomItemHeight: number = 0;
 
   scroller: Scroller = new Scroller();
+  @State isShowHomeAudio: boolean = false;
 
   @State isPc: boolean = false;
   @State isRTL: boolean = false;
@@ -372,6 +373,7 @@ export struct AVCastPicker {
     let isAllRoomSelect: boolean = true;
     let hasRoomIsSelect: boolean = false;
     let maxVolumeNum: number = 0;
+    this.isShowHomeAudio = (roomListTemp.length > 0) ? true : false;
     for (let i = 0; i < roomListTemp.length; i++) {
       this.roomSelectStatusPending[i] = false;
       this.roomIsSelect[i] = ((roomListTemp[i].data.playTask === this.playTaskIdStr) &&
@@ -574,7 +576,8 @@ export struct AVCastPicker {
         .fontWeight(FontWeight.Medium)
         .constraintSize({ maxWidth: '65%' })
       Text(this.isAllSelecting ? this.houseMusicPlayCancel : this.houseMusicPlay)
-        .fontColor(Color.Blue)
+        .fontColor((this.configurationColorMode !== ConfigurationColorMode.COLOR_MODE_DARK) ?
+          '#FF0A59F7' : '#FF317AF7')
         .fontSize($r('sys.float.Body_M'))
         .fontWeight(FontWeight.Medium)
         .constraintSize({ maxWidth: '35%' })
@@ -584,7 +587,7 @@ export struct AVCastPicker {
     }
     .width('100%')
     .justifyContent(FlexAlign.SpaceBetween)
-    .padding({top: '12vp', right: '24vp', bottom: '4vp', left: '24vp'})
+    .padding({top: '12vp', right: '16vp', bottom: '4vp', left: '16vp'})
     .borderRadius({topLeft: '32vp', topRight: '32vp'})
   }
 
@@ -598,7 +601,8 @@ export struct AVCastPicker {
         .fontSize($r('sys.float.Subtitle_M'))
         .fontWeight(FontWeight.Medium)
       Text(this.isAllSelecting ? this.houseMusicPlayCancel : this.houseMusicPlay)
-        .fontColor(Color.Blue)
+        .fontColor((this.configurationColorMode !== ConfigurationColorMode.COLOR_MODE_DARK) ?
+          '#FF0A59F7' : '#FF317AF7')
         .fontSize($r('sys.float.Body_M'))
         .fontWeight(FontWeight.Medium)
         .onClick(() => {
@@ -607,7 +611,7 @@ export struct AVCastPicker {
     }
     .width('100%')
     .alignItems(HorizontalAlign.Start)
-    .padding({top: '12vp', right: '24vp', bottom: '4vp', left: '24vp'})
+    .padding({top: '12vp', right: '16vp', bottom: '4vp', left: '16vp'})
     .borderRadius({topLeft: '32vp', topRight: '32vp'})
   }
 
@@ -631,7 +635,7 @@ export struct AVCastPicker {
         })
       }
     }
-    .padding({top: '4vp', right: '24vp', bottom: '4vp', left: '24vp'})
+    .padding({top: '4vp', right: '16vp', bottom: '4vp', left: '16vp'})
     .width('100%')
     .constraintSize({ minHeight: this.roomItemHeight })
     .align(Alignment.Start)
@@ -659,7 +663,8 @@ export struct AVCastPicker {
   @Builder RoomHouseBuilder() {
     SymbolGlyph($r('sys.symbol.music_house_fill'))
       .fontSize('24vp')
-      .fontColor([Color.Black])
+      .fontColor((this.configurationColorMode !== ConfigurationColorMode.COLOR_MODE_DARK) ?
+        [$r('sys.color.font_secondary')] : [$r('sys.color.icon_primary')])
       .margin({
         right: $r('sys.float.ohos_id_elements_margin_horizontal_l'),
         left: 0
@@ -782,9 +787,11 @@ export struct AVCastPicker {
         }
         this.HomeMusicSystemRoomListBuilder()
       }
-      .backgroundColor((this.configurationColorMode !== ConfigurationColorMode.COLOR_MODE_DARK) ?
-        '#FFFFFFFF' : '#FF3F3F3F')
-      .borderRadius({topLeft: '20vp', topRight: '20vp', bottomLeft: '20vp', bottomRight: '20vp'})
+      .onTouch((event?: TouchEvent) => {
+        event?.stopPropagation();
+      })
+      .backgroundColor($r('sys.color.background_primary'))
+      .borderRadius(this.isPc ? 8 : 20)
     }
   }
 
@@ -792,11 +799,10 @@ export struct AVCastPicker {
   deviceAndHouseMusicSys() {
     Column({ space: 8 }) {
       this.deviceMenu()
-      this.houseMusicSys()
+      if (this.sessionType !== 'voice_call' && this.sessionType !== 'video_call') {
+        this.houseMusicSys()
+      }
     }
-    .onTouch((event?: TouchEvent) => {
-      event?.stopPropagation();
-    })
     .width(this.isPc ? 326 : 216)
     .borderRadius(this.isPc ? 8 : 20)
   }
@@ -1075,8 +1081,7 @@ export struct AVCastPicker {
     }
     .width(this.isPc ? 326 : 216)
     .borderRadius(this.isPc ? 8 : 20)
-    .backgroundColor((this.configurationColorMode !== ConfigurationColorMode.COLOR_MODE_DARK) ?
-      '#FFFFFFFF' : '#FF3F3F3F')
+    .backgroundColor(this.isShowHomeAudio ? $r('sys.color.background_primary') : '#00000000')
   }
 
   @Builder
@@ -1372,7 +1377,10 @@ export struct AVCastPicker {
           this.isMenuShow,
           this.deviceAndHouseMusicSys(),
           {
-          backgroundBlurStyle: BlurStyle.NONE,
+          backgroundBlurStyle: (this.isShowHomeAudio ? BlurStyle.NONE : BlurStyle.BACKGROUND_ULTRA_THICK),
+          backgroundColor: (this.isShowHomeAudio ? '#00000000':
+            (this.configurationColorMode !== ConfigurationColorMode.COLOR_MODE_DARK) ?
+            $r('sys.color.background_primary') : '#00FFFFFF'),
           placement: Placement.BottomRight,
           showInSubWindow: false,
           enableHoverMode: true,
