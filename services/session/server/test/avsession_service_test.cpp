@@ -967,6 +967,7 @@ static HWTEST_F(AVSessionServiceTest, AddAvQueueInfoToFile001, TestSize.Level0)
 static HWTEST_F(AVSessionServiceTest, StartAVPlayback001, TestSize.Level0)
 {
     SLOGI("StartAVPlayback001 begin!");
+    ASSERT_TRUE(avservice_ != nullptr);
     std::string moduleName = "moduleName";
     avservice_->StartAVPlayback(g_testAnotherBundleName, "FAKE_ASSET_NAME", moduleName);
     EXPECT_EQ(0, AVSESSION_SUCCESS);
@@ -976,6 +977,7 @@ static HWTEST_F(AVSessionServiceTest, StartAVPlayback001, TestSize.Level0)
 static HWTEST_F(AVSessionServiceTest, StartAVPlayback002, TestSize.Level0)
 {
     SLOGI("StartAVPlayback002 begin!");
+    ASSERT_TRUE(avservice_ != nullptr);
     std::string deviceId = "123";
     std::string moduleName = "moduleName";
     avservice_->StartAVPlayback(g_testAnotherBundleName, "FAKE_ASSET_NAME", moduleName, deviceId);
