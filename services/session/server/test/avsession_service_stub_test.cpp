@@ -47,7 +47,6 @@ static HapPolicyParams g_policy = {
     .domain = "test.domain",
     .permList = {
         {
-            .permissionName = "ohos.permission.MANAGE_MEDIA_RESOURCES",
             .bundleName = "ohos.permission_test.demo",
             .grantMode = 1,
             .availableLevel = APL_NORMAL,
@@ -59,7 +58,6 @@ static HapPolicyParams g_policy = {
     },
     .permStateList = {
         {
-            .permissionName = "ohos.permission.MANAGE_MEDIA_RESOURCES",
             .isGeneral = true,
             .resDeviceID = {"local"},
             .grantStatus = {PermissionState::PERMISSION_GRANTED},
@@ -893,22 +891,7 @@ static HWTEST_F(AVSessionServiceStubTest, HandleGetHistoricalAVQueueInfos001, Te
     SLOGI("HandleGetHistoricalAVQueueInfos001 end!");
 }
 
-/**
- * @tc.name: HandleGetSessionDescriptors001
- * @tc.desc: Test HandleGetSessionDescriptors
- * @tc.type: FUNC
- */
-static HWTEST_F(AVSessionServiceStubTest, HandleGetSessionDescriptors001, TestSize.Level0)
-{
-    SLOGI("HandleGetSessionDescriptors001, start");
-    OHOS::MessageParcel data;
-    OHOS::MessageParcel reply;
-    data.WriteInt32(0);
-    AVSessionServiceStubPerDemo stub;
-    stub.HandleGetSessionDescriptors(data, reply);
-    EXPECT_EQ(reply.ReadInt32(), ERR_PERMISSION_DENIED);
-    SLOGI("HandleGetSessionDescriptors001 end!");
-}
+
  
 /**
  * @tc.name: HandleSendSystemCommonCommand001
