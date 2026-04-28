@@ -1519,9 +1519,7 @@ int32_t AVSessionItem::SetMediaCenterControlType(const std::vector<int32_t>& con
     {
         std::lock_guard controllerLockGuard(controllersLock_);
         for (const auto& [pid, controller] : controllers_) {
-            if (controller != nullptr) {
-                controller->HandleMediaCenterControlTypeChange(controlTypes);
-            }
+            controller != nullptr ? controller->HandleMediaCenterControlTypeChange(controlTypes) : (void)0;
         }
     }
 
@@ -1555,9 +1553,7 @@ int32_t AVSessionItem::SetSupportedPlaySpeeds(const std::vector<double>& speeds)
     {
         std::lock_guard controllerLockGuard(controllersLock_);
         for (const auto& [pid, controller] : controllers_) {
-            if (controller != nullptr) {
-                controller->HandleSupportedPlaySpeedsChange(speeds);
-            }
+            controller != nullptr ? controller->HandleSupportedPlaySpeedsChange(speeds) : (void)0;
         }
     }
 
@@ -1591,9 +1587,7 @@ int32_t AVSessionItem::SetSupportedLoopModes(const std::vector<int32_t>& loopMod
     {
         std::lock_guard controllerLockGuard(controllersLock_);
         for (const auto& [pid, controller] : controllers_) {
-            if (controller != nullptr) {
-                controller->HandleSupportedLoopModesChange(loopModes);
-            }
+            controller != nullptr ? controller->HandleSupportedLoopModesChange(loopModes) : (void)0;
         }
     }
 

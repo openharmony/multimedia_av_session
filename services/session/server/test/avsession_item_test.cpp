@@ -1238,6 +1238,150 @@ HWTEST_F(AVsessionItemTest, AVSessionItem_GetDesktopLyricState_002, TestSize.Lev
     SLOGI("AVSessionItem_GetDesktopLyricState_002 End");
 }
 
+/**
+* @tc.name: AVSessionItem_SetMediaCenterControlType_001
+* @tc.desc: set media center control type
+* @tc.type: FUNC
+* @tc.require: #1990
+*/
+HWTEST_F(AVsessionItemTest, AVSessionItem_SetMediaCenterControlType_001, TestSize.Level1)
+{
+    SLOGI("AVSessionItem_SetMediaCenterControlType_001 Begin");
+    ASSERT_NE(g_AVSessionItem, nullptr);
+    std::vector<int32_t> controlTypeArray = {0, 1};
+    int32_t res = g_AVSessionItem->SetMediaCenterControlType(controlTypeArray);
+    EXPECT_EQ(res, AVSESSION_SUCCESS);
+    SLOGI("AVSessionItem_SetMediaCenterControlType_001 End");
+}
+
+/**
+* @tc.name: AVSessionItem_SetMediaCenterControlType_002
+* @tc.desc: set media center control type
+* @tc.type: FUNC
+* @tc.require: #2011
+*/
+HWTEST_F(AVsessionItemTest, AVSessionItem_SetMediaCenterControlType_002, TestSize.Level1)
+{
+    SLOGI("AVSessionItem_SetMediaCenterControlType_002 Begin");
+    ASSERT_NE(g_AVSessionItem, nullptr);
+    std::vector<int32_t> controlTypeArray = {};
+    int32_t res = g_AVSessionItem->AVSession::SetMediaCenterControlType(controlTypeArray);
+    EXPECT_EQ(res, AVSESSION_SUCCESS);
+    SLOGI("AVSessionItem_SetMediaCenterControlType_002 End");
+}
+
+/**
+* @tc.name: AVSessionItem_SetSupportedPlaySpeeds_001
+* @tc.desc: set supported play speeds
+* @tc.type: FUNC
+* @tc.require: #1990
+*/
+HWTEST_F(AVsessionItemTest, AVSessionItem_SetSupportedPlaySpeeds_001, TestSize.Level1)
+{
+    SLOGI("AVSessionItem_SetSupportedPlaySpeeds_001 Begin");
+    ASSERT_NE(g_AVSessionItem, nullptr);
+    std::vector<double> playSpeedsArray = {0.125, 0.25};
+    int32_t res = g_AVSessionItem->SetSupportedPlaySpeeds(playSpeedsArray);
+    EXPECT_EQ(res, AVSESSION_SUCCESS);
+    SLOGI("AVSessionItem_SetSupportedPlaySpeeds_001 End");
+}
+
+/**
+* @tc.name: AVSessionItem_SetSupportedPlaySpeeds_002
+* @tc.desc: set supported play speeds
+* @tc.type: FUNC
+* @tc.require: #2011
+*/
+HWTEST_F(AVsessionItemTest, AVSessionItem_SetSupportedPlaySpeeds_002, TestSize.Level1)
+{
+    SLOGI("AVSessionItem_SetSupportedPlaySpeeds_002 Begin");
+    ASSERT_NE(g_AVSessionItem, nullptr);
+    std::vector<double> playSpeedsArray = {};
+    int32_t res = g_AVSessionItem->SetSupportedPlaySpeeds(playSpeedsArray);
+    EXPECT_EQ(res, AVSESSION_SUCCESS);
+    SLOGI("AVSessionItem_SetSupportedPlaySpeeds_002 End");
+}
+
+/**
+* @tc.name: AVSessionItem_SetSupportedLoopModes_001
+* @tc.desc: set supported loopmodes
+* @tc.type: FUNC
+* @tc.require: #1990
+*/
+HWTEST_F(AVsessionItemTest, AVSessionItem_SetSupportedLoopModes_001, TestSize.Level1)
+{
+    SLOGI("AVSessionItem_SetSupportedLoopModes_001 Begin");
+    ASSERT_NE(g_AVSessionItem, nullptr);
+    std::vector<int32_t> loopModesArray = {0, 1};
+    int32_t res = g_AVSessionItem->SetSupportedLoopModes(loopModesArray);
+    EXPECT_EQ(res, AVSESSION_SUCCESS);
+    SLOGI("AVSessionItem_SetSupportedLoopModes_001 End");
+}
+
+/**
+* @tc.name: AVSessionItem_SetSupportedLoopModes_002
+* @tc.desc: set supported loopmodes
+* @tc.type: FUNC
+* @tc.require: #2011
+*/
+HWTEST_F(AVsessionItemTest, AVSessionItem_SetSupportedLoopModes_002, TestSize.Level1)
+{
+    SLOGI("AVSessionItem_SetSupportedLoopModes_002 Begin");
+    ASSERT_NE(g_AVSessionItem, nullptr);
+    std::vector<int32_t> loopModesArray = {};
+    int32_t res = g_AVSessionItem->AVSession::SetSupportedLoopModes(loopModesArray);
+    EXPECT_EQ(res, AVSESSION_SUCCESS);
+    SLOGI("AVSessionItem_SetSupportedLoopModes_002 End");
+}
+
+/**
+* @tc.name: AVSessionItem_GetMediaCenterControlType_001
+* @tc.desc: get media center control type
+* @tc.type: FUNC
+* @tc.require: #1990
+*/
+HWTEST_F(AVsessionItemTest, AVSessionItem_GetMediaCenterControlType_001, TestSize.Level1)
+{
+    SLOGI("AVSessionItem_GetMediaCenterControlType_001 Begin");
+    ASSERT_NE(g_AVSessionItem, nullptr);
+    std::vector<int32_t> controlTypeArray = {};
+    int32_t res = g_AVSessionItem->GetMediaCenterControlType(controlTypeArray);
+    EXPECT_EQ(res, AVSESSION_SUCCESS);
+    SLOGI("AVSessionItem_GetMediaCenterControlType_001 End");
+}
+
+/**
+* @tc.name: AVSessionItem_GetSupportedPlaySpeeds_001
+* @tc.desc: get supported play speeds
+* @tc.type: FUNC
+* @tc.require: #1990
+*/
+HWTEST_F(AVsessionItemTest, AVSessionItem_GetSupportedPlaySpeeds_001, TestSize.Level1)
+{
+    SLOGI("AVSessionItem_GetSupportedPlaySpeeds_001 Begin");
+    ASSERT_NE(g_AVSessionItem, nullptr);
+    std::vector<double> speedsArray = {};
+    int32_t res = g_AVSessionItem->GetSupportedPlaySpeeds(speedsArray);
+    EXPECT_EQ(res, AVSESSION_SUCCESS);
+    SLOGI("AVSessionItem_GetSupportedPlaySpeeds_001 End");
+}
+
+/**
+* @tc.name: AVSessionItem_GetSupportedLoopModes_001
+* @tc.desc: get supported loopmodes
+* @tc.type: FUNC
+* @tc.require: #1990
+*/
+HWTEST_F(AVsessionItemTest, AVSessionItem_GetSupportedLoopModes_001, TestSize.Level1)
+{
+    SLOGI("AVSessionItem_GetSupportedLoopModes_001 Begin");
+    ASSERT_NE(g_AVSessionItem, nullptr);
+    std::vector<int32_t> loopmodesArray = {};
+    int32_t res = g_AVSessionItem->GetSupportedLoopModes(loopmodesArray);
+    EXPECT_EQ(res, AVSESSION_SUCCESS);
+    SLOGI("AVSessionItem_GetSupportedLoopModes_001 End");
+}
+
 #ifdef CASTPLUS_CAST_ENGINE_ENABLE
 /**
 * @tc.name: AVSessionItem_SetMediaChangeForMirrorToStream_001
