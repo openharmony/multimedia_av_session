@@ -1532,7 +1532,7 @@ HWTEST_F(AVSessionControllerTest, GetSupportedPlaySpeeds001, TestSize.Level1)
 {
     std::vector<double> speeds;
     EXPECT_EQ(controller_->GetSupportedPlaySpeeds(speeds), AVSESSION_SUCCESS);
-    EXPECT_GT(speeds.size(), 0);
+    EXPECT_EQ(speeds.size() > 0, true);
 }
 
 /**
@@ -1545,7 +1545,7 @@ HWTEST_F(AVSessionControllerTest, GetMediaCenterControlType001, TestSize.Level1)
 {
     std::vector<int32_t> controlTypes;
     EXPECT_EQ(controller_->GetMediaCenterControlType(controlTypes), AVSESSION_SUCCESS);
-    EXPECT_GT(controlTypes.size(), 0);
+    EXPECT_EQ(controlTypes.size() > 0, true);
 }
 
 /**
@@ -1558,7 +1558,7 @@ HWTEST_F(AVSessionControllerTest, GetSupportedLoopModes001, TestSize.Level1)
 {
     std::vector<int32_t> loopModes;
     EXPECT_EQ(controller_->GetSupportedLoopModes(loopModes), AVSESSION_SUCCESS);
-    EXPECT_GT(loopModes.size(), 0);
+    EXPECT_EQ(loopModes.size() > 0, true);
 }
 } // namespace AVSession
 } // namespace OHOS
