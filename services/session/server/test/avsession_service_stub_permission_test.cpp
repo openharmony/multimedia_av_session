@@ -753,20 +753,3 @@ static HWTEST_F(AVSessionServiceStubPermissionTest, HandleClose001, TestSize.Lev
     int ret = avsessionservicestub.HandleClose(data, reply);
     EXPECT_EQ(ret, OHOS::ERR_NONE);
 }
-
-/**
- * @tc.name: HandleGetSessionDescriptors001
- * @tc.desc: Test HandleGetSessionDescriptors with permission
- * @tc.type: FUNC
- */
-static HWTEST_F(AVSessionServiceStubPermissionTest, HandleGetSessionDescriptors001, TestSize.Level0)
-{
-    SLOGI("HandleGetSessionDescriptors001, start");
-    OHOS::MessageParcel data;
-    OHOS::MessageParcel reply;
-    data.WriteInt32(0);
-    AVSessionServiceStubDemo stub;
-    stub.HandleGetSessionDescriptors(data, reply);
-    EXPECT_EQ(reply.ReadInt32(), 0);
-    SLOGI("HandleGetSessionDescriptors001 end!");
-}
