@@ -280,6 +280,8 @@ public:
 
     void NotifyMirrorToStreamCast();
 
+    void NotifySupportExtendedScreen(bool isSupport);
+
     void NotifySystemCommonEvent(const std::string& commonEvent, const std::string& args) override;
 
     bool IsMirrorToStreamCastAllowed(sptr<AVSessionItem>& session);
@@ -355,6 +357,8 @@ public:
     void UpdateNtfEnable(bool isMediaNtfEnable);
 
     static AVSessionUsersManager& GetUsersManager();
+
+    void SetPcMode(bool isPcMode);
 
 private:
     void NotifyProcessStatus(bool isStart);
@@ -616,6 +620,10 @@ private:
 
     bool IsCapsuleNeeded();
 
+    void HandlePcModeRemoveNotification();
+
+    void HandlePcModeAddNotification();
+
     int32_t GetLocalDeviceType();
 
     void DoTargetDevListenWithDM();
@@ -713,6 +721,7 @@ private:
     std::atomic<bool> hasMediaCapsule_ = false;
     std::atomic<bool> hasCardStateChangeStopTask_ = false;
     std::atomic<bool> isNtfEnabled_ = true;
+    std::atomic<bool> isPcMode_ {false};
 
     sptr<AVSessionItem> topSession_;
     sptr<AVSessionItem> ancoSession_;

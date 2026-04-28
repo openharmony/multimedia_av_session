@@ -1411,6 +1411,72 @@ HWTEST_F(AVsessionItemTest, AVSessionItem_ReportConnectFinish_001, TestSize.Leve
     EXPECT_EQ(deviceInfo.deviceType_, 1);
     SLOGI("AVSessionItem_ReportConnectFinish_001 End");
 }
+
+/**
+* @tc.name: AVSessionItem_SetServiceCallbackForPcMode_001
+* @tc.desc: test SetServiceCallbackForPcMode and verify callback affects displayListener creation
+* @tc.type: FUNC
+* @tc.require: NA
+*/
+HWTEST_F(AVsessionItemTest, AVSessionItem_SetServiceCallbackForPcMode_001, TestSize.Level1)
+{
+    SLOGI("AVSessionItem_SetServiceCallbackForPcMode_001 Begin");
+    ASSERT_NE(g_AVSessionItem, nullptr);
+    
+    auto callback = []() { return true; };
+    g_AVSessionItem->SetServiceCallbackForPcMode(callback);
+    
+    sptr<AVSessionCallbackImpl> sessionCallback = new AVSessionCallbackImpl();
+    g_AVSessionItem->GetDisplayListener(sessionCallback);
+    
+    std::vector<CastDisplayInfo> castDisplays;
+    int32_t ret = g_AVSessionItem->GetAllCastDisplays(castDisplays);
+    EXPECT_EQ(ret, AVSESSION_SUCCESS);
+    SLOGI("AVSessionItem_SetServiceCallbackForPcMode_001 End");
+}
+
+/**
+* @tc.name: AVSessionItem_SetSupportExtendedScreen_001
+* @tc.desc: test SetSupportExtendedScreen with isSupport true and verify displayListener state
+* @tc.type: FUNC
+* @tc.require: NA
+*/
+HWTEST_F(AVsessionItemTest, AVSessionItem_SetSupportExtendedScreen_001, TestSize.Level1)
+{
+    SLOGI("AVSessionItem_SetSupportExtendedScreen_001 Begin");
+    ASSERT_NE(g_AVSessionItem, nullptr);
+    
+    sptr<AVSessionCallbackImpl> sessionCallback = new AVSessionCallbackImpl();
+    g_AVSessionItem->GetDisplayListener(sessionCallback);
+    
+    g_AVSessionItem->SetSupportExtendedScreen(true);
+    std::vector<CastDisplayInfo> castDisplays;
+    int32_t ret = g_AVSessionItem->GetAllCastDisplays(castDisplays);
+    EXPECT_EQ(ret, AVSESSION_SUCCESS);
+    SLOGI("AVSessionItem_SetSupportExtendedScreen_001 End");
+}
+
+/**
+* @tc.name: AVSessionItem_SetSupportExtendedScreen_002
+* @tc.desc: test SetSupportExtendedScreen with isSupport false and verify GetAllCastDisplays returns empty
+* @tc.type: FUNC
+* @tc.require: NA
+*/
+HWTEST_F(AVsessionItemTest, AVSessionItem_SetSupportExtendedScreen_002, TestSize.Level1)
+{
+    SLOGI("AVSessionItem_SetSupportExtendedScreen_002 Begin");
+    ASSERT_NE(g_AVSessionItem, nullptr);
+    
+    sptr<AVSessionCallbackImpl> sessionCallback = new AVSessionCallbackImpl();
+    g_AVSessionItem->GetDisplayListener(sessionCallback);
+    
+    g_AVSessionItem->SetSupportExtendedScreen(false);
+    std::vector<CastDisplayInfo> castDisplays;
+    int32_t ret = g_AVSessionItem->GetAllCastDisplays(castDisplays);
+    EXPECT_EQ(ret, AVSESSION_SUCCESS);
+    EXPECT_EQ(castDisplays.size(), 0);
+    SLOGI("AVSessionItem_SetSupportExtendedScreen_002 End");
+}
 #endif
 } //AVSession
 } //OHOS
