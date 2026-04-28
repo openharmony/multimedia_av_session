@@ -411,6 +411,10 @@ public:
     MultiDeviceState GetMultiDeviceState();
 
     void SetServiceCallbackForPhotoCast(const std::function<void(std::string, bool)>& callback);
+
+    void SetServiceCallbackForPcMode(const std::function<bool()>& callback);
+
+    void SetSupportExtendedScreen(bool isSupport);
 #endif
 
 #ifdef ENABLE_AVSESSION_SYSEVENT_CONTROL
@@ -666,6 +670,7 @@ private:
     std::function<void(std::string, bool, bool)> serviceCallbackForCastNtf_;
     std::function<void()> serviceCallbackStopSinkCast_;
     std::function<void(std::string, bool)> serviceCallbackForPhotoCast_;
+    std::function<bool()> serviceCallbackForPcMode_;
 
     const std::string MEDIA_CONTROL_BUNDLENAME = "com.ohos.mediacontroller";
     const std::string SCENE_BOARD_BUNDLENAME = "com.ohos.sceneboard";
