@@ -4585,7 +4585,8 @@ std::string AVSessionService::GetLocalTitle()
             AVSessionUtils::GetAnonyTitle(songName.c_str()).c_str());
     }
     std::string localTitle = (isTitleLyric || isAncoLyric) && !songName.empty() ? songName : meta.GetTitle();
-    SLOGI("GetLocalTitle localTitle:%{public}s", AVSessionUtils::GetAnonyTitle(songName).c_str());
+    SLOGI("GetLocalTitle localTitle:%{public}s|songName empty:%{public}d",
+        AVSessionUtils::GetAnonyTitle(localTitle).c_str(), songName.empty());
     return localTitle;
 }
 
