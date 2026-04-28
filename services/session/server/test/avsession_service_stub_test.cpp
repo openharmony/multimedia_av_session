@@ -953,8 +953,6 @@ static HWTEST_F(AVSessionServiceStubTest, HandleGetSessionDescriptors001, TestSi
     
     SLOGI("HandleGetSessionDescriptors001 end!");
 }
-
-
  
 /**
  * @tc.name: HandleSendSystemCommonCommand001
