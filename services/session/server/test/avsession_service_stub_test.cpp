@@ -891,6 +891,69 @@ static HWTEST_F(AVSessionServiceStubTest, HandleGetHistoricalAVQueueInfos001, Te
     SLOGI("HandleGetHistoricalAVQueueInfos001 end!");
 }
 
+/**
+ * @tc.name: HandleGetSessionDescriptors001
+ * @tc.desc: Test HandleGetSessionDescriptors with permission allocated in test
+ * @tc.type: FUNC
+ */
+static HWTEST_F(AVSessionServiceStubTest, HandleGetSessionDescriptors001, TestSize.Level0)
+{
+    SLOGI("HandleGetSessionDescriptors001, start");
+    
+    uint64_t savedTokenId = OHOS::IPCSkeleton::GetSelfTokenID();
+    
+    HapPolicyParams testPolicy = {
+        .apl = APL_NORMAL,
+        .domain = "test.domain",
+        .permList = {
+            {
+                .permissionName = "ohos.permission.MANAGE_MEDIA_RESOURCES",
+                .bundleName = "ohos.test.demo",
+                .grantMode = 1,
+                .availableLevel = APL_NORMAL,
+                .label = "label",
+                .labelId = 1,
+                .description = "test",
+                .descriptionId = 1
+            }
+        },
+        .permStateList = {
+            {
+                .permissionName = "ohos.permission.MANAGE_MEDIA_RESOURCES",
+                .isGeneral = true,
+                .resDeviceID = {"local"},
+                .grantStatus = {PermissionState::PERMISSION_GRANTED},
+                .grantFlags = {1}
+            }
+        }
+    };
+    
+    HapInfoParams testInfo = {
+        .userID = 100,
+        .bundleName = "ohos.test.demo",
+        .instIndex = 0,
+        .appIDDesc = "ohos.test.demo",
+        .isSystemApp = true
+    };
+    
+    AccessTokenKit::AllocHapToken(testInfo, testPolicy);
+    AccessTokenIDEx testTokenID = AccessTokenKit::GetHapTokenIDEx(testInfo.userID, testInfo.bundleName, testInfo.instIndex);
+    SetSelfTokenID(testTokenID.tokenIDEx);
+    
+    OHOS::MessageParcel data;
+    OHOS::MessageParcel reply;
+    data.WriteInt32(0);
+    AVSessionServiceStubPerDemo stub;
+    stub.HandleGetSessionDescriptors(data, reply);
+    EXPECT_EQ(reply.ReadInt32(), 0);
+    
+    SetSelfTokenID(savedTokenId);
+    auto tokenId = AccessTokenKit::GetHapTokenID(testInfo.userID, testInfo.bundleName, testInfo.instIndex);
+    AccessTokenKit::DeleteToken(tokenId);
+    
+    SLOGI("HandleGetSessionDescriptors001 end!");
+}
+
 
  
 /**
