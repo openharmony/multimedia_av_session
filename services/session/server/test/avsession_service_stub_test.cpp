@@ -925,7 +925,7 @@ static HWTEST_F(AVSessionServiceStubTest, HandleSendSystemCommonCommand001, Test
     EXPECT_EQ(data.ReadInt32(), AVSESSION_SUCCESS);
     SLOGI("HandleSendSystemCommonCommand001 end!");
 }
- 
+
 /**
  * @tc.name: HandleSendSystemCommonCommand002
  * @tc.desc: Test HandleSendSystemCommonCommand commandArgs is null
