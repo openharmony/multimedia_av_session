@@ -26,6 +26,9 @@
 #include "avsession_errors.h"
 #include "avsession_item.h"
 #include "avsession_log.h"
+#include "bool_wrapper.h"
+#include "want_params.h"
+#include "int_wrapper.h"
 #include "migrate_avsession_constant.h"
 #include "migrate_avsession_manager.h"
 #include "migrate_avsession_proxy.h"
@@ -753,7 +756,8 @@ static HWTEST_F(MigrateAVSessionProxyTest, GetVersion002, TestSize.Level0)
 static HWTEST_F(MigrateAVSessionProxyTest, NotifyMediaControlSyncTime001, TestSize.Level0)
 {
     OHOS::AAFwk::WantParams extras;
-    auto isNeed = OHOS::AAFwk::Boolean::Box(true);
+    bool valueBool = true;
+    auto isNeed = OHOS::AAFwk::Boolean::Box(valueBool);
     extras.SetParam(MEDIACONTROL_NEED_STATE, isNeed);
     g_MigrateAVSessionProxy->NotifyMediaControlSyncTime(extras);
     EXPECT_EQ(extras.HasParam(MEDIACONTROL_NEED_STATE), true);
@@ -768,9 +772,11 @@ static HWTEST_F(MigrateAVSessionProxyTest, NotifyMediaControlSyncTime001, TestSi
 static HWTEST_F(MigrateAVSessionProxyTest, NotifyMediaControlSyncTime002, TestSize.Level0)
 {
     OHOS::AAFwk::WantParams extras;
-    auto isNeed = OHOS::AAFwk::Boolean::Box(false);
+    bool valueBool = false;
+    auto isNeed = OHOS::AAFwk::Boolean::Box(valueBool);
     extras.SetParam(MEDIACONTROL_NEED_STATE, isNeed);
-    auto timeoutMs = OHOS::AAFwk::Integer::Box(10000);
+    int32_t valueInt = 10000;
+    auto timeoutMs = OHOS::AAFwk::Integer::Box(valueInt);
     extras.SetParam(MEDIACONTROL_NEED_STATE_TIMEOUT_MS, timeoutMs);
     g_MigrateAVSessionProxy->NotifyMediaControlSyncTime(extras);
     EXPECT_EQ(extras.HasParam(MEDIACONTROL_NEED_STATE), true);
