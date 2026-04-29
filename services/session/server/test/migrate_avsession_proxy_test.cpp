@@ -726,7 +726,7 @@ static HWTEST_F(MigrateAVSessionProxyTest, ProcessLongPauseNotify002, TestSize.L
  */
 static HWTEST_F(MigrateAVSessionProxyTest, GetVersion001, TestSize.Level0)
 {
-    AAFwk::WantParams extras;
+    OHOS::AAFwk::WantParams extras;
     g_MigrateAVSessionProxy->GetVersion(extras);
     EXPECT_TRUE(extras.HasParam(AUDIO_GET_VERSION));
 }
@@ -739,7 +739,7 @@ static HWTEST_F(MigrateAVSessionProxyTest, GetVersion001, TestSize.Level0)
  */
 static HWTEST_F(MigrateAVSessionProxyTest, GetVersion002, TestSize.Level0)
 {
-    AAFwk::WantParams extras;
+    OHOS::AAFwk::WantParams extras;
     g_MigrateAVSessionProxy->GetVersion(extras);
     EXPECT_TRUE(extras.HasParam(AUDIO_GET_VERSION));
 }
@@ -752,8 +752,8 @@ static HWTEST_F(MigrateAVSessionProxyTest, GetVersion002, TestSize.Level0)
  */
 static HWTEST_F(MigrateAVSessionProxyTest, NotifyMediaControlSyncTime001, TestSize.Level0)
 {
-    AAFwk::WantParams extras;
-    auto isNeed = OHOS::AAFwk::Boolean::Box(true);
+    OHOS::AAFwk::WantParams extras;
+    auto isNeed = OHOS::AAFwk::IBoolean::Box(true);
     extras.SetParam(MEDIACONTROL_NEED_STATE, isNeed);
     g_MigrateAVSessionProxy->NotifyMediaControlSyncTime(extras);
     EXPECT_EQ(extras.HasParam(MEDIACONTROL_NEED_STATE), true);
@@ -767,10 +767,10 @@ static HWTEST_F(MigrateAVSessionProxyTest, NotifyMediaControlSyncTime001, TestSi
  */
 static HWTEST_F(MigrateAVSessionProxyTest, NotifyMediaControlSyncTime002, TestSize.Level0)
 {
-    AAFwk::WantParams extras;
-    auto isNeed = OHOS::AAFwk::Boolean::Box(false);
+    OHOS::AAFwk::WantParams extras;
+    auto isNeed = OHOS::AAFwk::IBoolean::Box(false);
     extras.SetParam(MEDIACONTROL_NEED_STATE, isNeed);
-    auto timeoutMs = OHOS::AAFwk::Integer::Box(10000);
+    auto timeoutMs = OHOS::AAFwk::IInteger::Box(10000);
     extras.SetParam(MEDIACONTROL_NEED_STATE_TIMEOUT_MS, timeoutMs);
     g_MigrateAVSessionProxy->NotifyMediaControlSyncTime(extras);
     EXPECT_EQ(extras.HasParam(MEDIACONTROL_NEED_STATE), true);
@@ -784,7 +784,7 @@ static HWTEST_F(MigrateAVSessionProxyTest, NotifyMediaControlSyncTime002, TestSi
  */
 static HWTEST_F(MigrateAVSessionProxyTest, NotifyMediaControlSyncTime003, TestSize.Level0)
 {
-    AAFwk::WantParams extras;
+    OHOS::AAFwk::WantParams extras;
     g_MigrateAVSessionProxy->NotifyMediaControlSyncTime(extras);
     EXPECT_EQ(extras.HasParam(MEDIACONTROL_NEED_STATE), false);
 }
