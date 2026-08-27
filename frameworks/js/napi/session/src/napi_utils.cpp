@@ -16,6 +16,7 @@
 #include <cstdio>
 
 #include "napi_utils.h"
+#include "parse_avsession_int.h"
 #include "securec.h"
 #include "avsession_log.h"
 #include "av_session.h"
@@ -331,7 +332,7 @@ napi_status NapiUtils::SetValue(napi_env env, const AppExecFwk::ElementName& in,
 bool NapiUtils::JudgeNumString(const std::string& str)
 {
     std::string tempStr = str;
-    return all_of(tempStr.begin(), tempStr.end(), [](char ch) {
+    return !tempStr.empty() && all_of(tempStr.begin(), tempStr.end(), [](char ch) {
         return isdigit(ch);
     });
 }
@@ -343,11 +344,12 @@ napi_status NapiUtils::SetOutPutDeviceIdValue(napi_env env, const std::vector<st
     int index = 0;
     for (auto& item : in) {
         napi_value element = nullptr;
-        if (!JudgeNumString(item)) {
+        int32_t parsed = 0;
+        if (!JudgeNumString(item) || !ParseAvSessionInt(item, parsed)) {
             SLOGE("item is not num string");
             return napi_invalid_arg;
         }
-        SetValue(env, static_cast<int32_t>(std::stoi(item)), element);
+        SetValue(env, parsed, element);
         status = napi_set_element(env, out, index++, element);
         CHECK_RETURN((status == napi_ok), "napi_set_element failed!", status);
     }

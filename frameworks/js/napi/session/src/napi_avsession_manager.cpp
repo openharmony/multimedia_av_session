@@ -14,6 +14,7 @@
  */
 
 #include "napi_avsession_manager.h"
+#include "parse_avsession_int.h"
 #include "avcontrol_command.h"
 #include "avplayback_state.h"
 #include "avsession_errors.h"
@@ -1840,8 +1841,15 @@ napi_value NapiAVSessionManager::StartDeviceLogging(napi_env env, napi_callback_
     context->taskId = NAPI_START_DEVICE_LOGGING_TASK_ID;
 
     auto executor = [context]() {
+        int32_t parsedFd = 0;
+        if (!ParseAvSessionInt(context->fd_, parsedFd)) {
+            context->status = napi_generic_failure;
+            context->errCode = NapiAVSessionManager::errcode_[ERR_INVALID_PARAM];
+            SLOGE("StartDeviceLogging fd parse failed");
+            return;
+        }
         int32_t ret = AVSessionManager::GetInstance().StartDeviceLogging(
-            std::stoi(context->fd_), context->maxSize_);
+            parsedFd, context->maxSize_);
         if (ret != AVSESSION_SUCCESS) {
             context->status = napi_generic_failure;
             context->errCode = NapiAVSessionManager::errcode_[ret];
