@@ -14,6 +14,7 @@
  */
 
 #include "avcast_controller_proxy.h"
+#include <charconv>
 #include "avcast_controller_callback_client.h"
 #include "avsession_errors.h"
 #include "avsession_log.h"
@@ -358,9 +359,11 @@ int32_t AVCastControllerProxy::GetValidCommands(std::vector<int32_t>& cmds)
 int32_t AVCastControllerProxy::SetDisplaySurface(std::string& surfaceId)
 {
     AVSESSION_TRACE_SYNC_START("AVCastControllerProxy::SetDisplaySurface");
-    errno = 0;
-    uint64_t surfaceUniqueId = static_cast<uint64_t>(std::strtoll(surfaceId.c_str(), nullptr, 10));
-    if (errno == ERANGE) {
+    uint64_t surfaceUniqueId = 0;
+    const char *begin = surfaceId.data();
+    const char *end = begin + surfaceId.size();
+    auto parsed = std::from_chars(begin, end, surfaceUniqueId);
+    if (parsed.ec != std::errc{} || parsed.ptr != end) {
         AudioStandard::StreamDfxManager::GetInstance().SendAudioErrorEvent(static_cast<int32_t>(getuid()),
             AudioStandard::AVSESSION_CONTROL_INVALID_PARAM_CAST_SET, "surfaceId conversion error", false);
         return ERR_INVALID_PARAM;
