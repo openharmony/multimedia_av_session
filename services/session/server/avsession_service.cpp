@@ -14,6 +14,7 @@
  */
 
 #include <sstream>
+#include <charconv>
 #include <iomanip>
 #include <iostream>
 #include <regex>
@@ -4883,7 +4884,12 @@ bool AVSessionService::CheckNotificationEnabled()
         }
         parts.push_back(foldScreenType.substr(start));
         if (parts.size() > 1) {
-            isSupportOuterScreen = (std::stoi(parts[1]) == OUTER_SCREEN_TYPE_VALUE);
+            int32_t outerScreenType = 0;
+            const char *begin = parts[1].data();
+            const char *end = begin + parts[1].size();
+            auto parsed = std::from_chars(begin, end, outerScreenType);
+            isSupportOuterScreen = parsed.ec == std::errc{} && parsed.ptr == end &&
+                outerScreenType == OUTER_SCREEN_TYPE_VALUE;
         }
     }
 #ifdef DEVICE_MANAGER_ENABLE
