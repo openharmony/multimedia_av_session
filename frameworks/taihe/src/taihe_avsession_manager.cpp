@@ -18,6 +18,8 @@
 
 #include "taihe_avsession_manager.h"
 
+#include <charconv>
+
 #include "ability.h"
 #include "avcontrol_command.h"
 #include "avplayback_state.h"
@@ -1391,7 +1393,16 @@ void StartDeviceLoggingSync(string_view url, optional_view<int32_t> maxSize)
     }
     if (maxSize.has_value()) {
         maxSize_ = maxSize.value();
-        int32_t ret = OHOS::AVSession::AVSessionManager::GetInstance().StartDeviceLogging(std::stoi(fd), maxSize_);
+        int32_t fdValue = 0;
+        const char *begin = fd.data();
+        const char *end = begin + fd.size();
+        auto parsed = std::from_chars(begin, end, fdValue);
+        if (parsed.ec != std::errc{} || parsed.ptr != end) {
+            TaiheUtils::ThrowError(TaiheAVSessionManager::errcode_[OHOS::AVSession::ERR_INVALID_PARAM],
+                "StartDeviceLoggingSync fd is out of range");
+            return;
+        }
+        int32_t ret = OHOS::AVSession::AVSessionManager::GetInstance().StartDeviceLogging(fdValue, maxSize_);
         if (ret != OHOS::AVSession::AVSESSION_SUCCESS) {
             std::string errMessage = "StopDeviceLoggingSync failed : return error code = " + std::to_string(ret);
             TaiheUtils::ThrowError(TaiheAVSessionManager::errcode_[ret], errMessage);
